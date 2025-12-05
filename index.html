@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>⚡️ 小新的超能力批次相簿！</title>
+    <style>
+        /* 🖍️ 蠟筆小新動畫風格 CSS */
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@700;900&display=swap');
+        
+        body {
+            font-family: 'Noto Sans TC', Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            background-color: #f7e6f6; /* 蠟筆粉色調 */
+            color: #333;
+        }
+        .container {
+            background-color: #fff;
+            padding: 40px 30px;
+            border-radius: 20px;
+            border: 4px solid #1a1a1a; /* 粗黑線條 */
+            box-shadow: 10px 10px 0 #ff69b4; /* 俏皮的陰影 */
+            max-width: 600px;
+            width: 100%;
+            text-align: center;
+        }
+        h1 {
+            color: #ff0000; /* 小新最愛的紅色 */
+            font-size: 2.5em;
+            text-shadow: 2px 2px 0 #ffff00; /* 黃色邊框 */
+            margin-bottom: 5px;
+        }
+        p {
+            font-weight: 700;
+            color: #444;
+        }
+        
+        /* 拖曳區塊樣式 */
+        #dropArea {
+            border: 3px dashed #ff69b4; /* 點點虛線 */
+            border-radius: 15px;
+            padding: 40px;
+            margin-bottom: 20px;
+            cursor: pointer;
+            transition: background-color 0.2s, border-color 0.2s;
+            background-color: #fff0f5;
+        }
+        #dropArea.drag-over {
+            background-color: #fff;
+            border-color: #00ff00; /* 拖曳時變綠色 */
+            box-shadow: 0 0 15px rgba(0, 255, 0, 0.5);
+        }
+        
+        /* 隱藏的檔案選擇器，但允許選取多個檔案 */
+        #photoFile {
+            display: none;
+        }
+
+        .file-list {
+            text-align: left;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            margin-top: 15px;
+        }
+        .file-list p {
+            font-size: 0.9em;
+            color: #666;
+            margin: 5px 0;
+        }
+
+        button {
+            padding: 12px 25px;
+            margin-top: 20px;
+            font-size: 1.1em;
+            background-color: #007bff;
+            color: white;
+            border: 3px solid #1a1a1a; /* 粗黑邊 */
+            cursor: pointer;
+            transition: transform 0.1s, box-shadow 0.1s;
+            border-radius: 8px;
+            font-weight: 900;
+        }
+        button:active {
+            transform: translate(2px, 2px);
+            box-shadow: 0 0 0 #1a1a1a;
+        }
+        
+        .message-box {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 10px;
+            font-weight: bold;
+            text-align: left;
+        }
+        .success { background-color: #d4edda; color: #155724; border: 2px solid #155724;}
+        .error { background-color: #f8d7da; color: #721c24; border: 2px solid #721c24;}
+        .loading { background-color: #ffeeba; color: #856404; border: 2px solid #856404;}
+        .result-item { margin-bottom: 5px; font-size: 0.9em; }
+        .result-item.ok { color: green; }
+        .result-item.fail { color: red; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>👶 批次上傳！幫小新收集動感超人卡</h1>
+        <p>可以一次選取多張照片，或直接把檔案拖曳到下方區域喔！</p>
+
+        <div id="dropArea">
+            <input type="file" id="photoFile" accept="image/*,video/*" multiple>
+            <p style="font-size: 1.2em;">把照片/影片拖曳到這裡！<br>或點擊此處選取檔案</p>
+            <div id="fileList" class="file-list" style="display: none;">已選擇檔案列表：</div>
+        </div>
+
+        <button id="uploadButton" onclick="uploadPhoto()">開始上傳 (發射！)</button>
+
+        <div id="message" class="message-box loading" style="display: none;"></div>
+    </div>
+
+    <script>
+        // ✨ ✨ ✨ 這裡是你後端服務的公開網址！ ✨ ✨ ✨
+        const BACKEND_URL = 'https://myphotostorage-backend.zeabur.app';
+        
+        const dropArea = document.getElementById('dropArea');
+        const fileInput = document.getElementById('photoFile');
+        const fileListElement = document.getElementById('fileList');
+        const messageElement = document.getElementById('message');
+        const uploadButton = document.getElementById('uploadButton');
+        let selectedFiles = []; // 用來儲存所有選中的檔案
+
+        // --- 拖曳事件監聽 (實現拖曳上傳) ---
+
+        // 點擊拖曳區域時，觸發檔案選擇
+        dropArea.addEventListener('click', () => fileInput.click());
+
+        // 拖曳進入
+        dropArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropArea.classList.add('drag-over');
+        });
+
+        // 拖曳離開
+        dropArea.addEventListener('dragleave', () => {
+            dropArea.classList.remove('drag-over');
+        });
+
+        // 檔案放開 (Drop)
+        dropArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropArea.classList.remove('drag-over');
+            
+            // 取得拖曳進來的檔案列表
+            const files = e.dataTransfer.files;
+            handleFiles(files);
+        });
+
+        // 檔案選擇變更 (Change)
+        fileInput.addEventListener('change', (e) => {
+            handleFiles(e.target.files);
+        });
+
+        function handleFiles(files) {
+            selectedFiles = Array.from(files);
+            updateFileListDisplay();
+        }
+
+        function updateFileListDisplay() {
+            if (selectedFiles.length === 0) {
+                fileListElement.style.display = 'none';
+                uploadButton.disabled = true;
+                return;
+            }
+
+            fileListElement.style.display = 'block';
+            uploadButton.disabled = false;
+            
+            let listHTML = `<p>已選取 **${selectedFiles.length}** 個檔案：</p><ul>`;
+            selectedFiles.forEach(file => {
+                listHTML += `<li>${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)</li>`;
+            });
+            listHTML += '</ul>';
+            fileListElement.innerHTML = listHTML;
+        }
+
+
+        // --- 上傳邏輯 ---
+
+        async function uploadPhoto() {
+            if (selectedFiles.length === 0) {
+                messageElement.className = 'message-box error';
+                messageElement.textContent = '❌ 請先選擇檔案！';
+                messageElement.style.display = 'block';
+                return;
+            }
+            
+            uploadButton.disabled = true;
+            messageElement.className = 'message-box loading';
+            messageElement.style.display = 'block';
+            messageElement.innerHTML = `🚀 正在上傳 **${selectedFiles.length}** 個檔案，請等待小新發功...`;
+            
+            // 準備傳送給後端的資料
+            const formData = new FormData();
+            // 注意：這裡的 key 必須是 'photos'，要和後端 server.js 裡的 upload.array('photos') 相符！
+            selectedFiles.forEach(file => {
+                formData.append('photos', file); 
+            });
+
+            try {
+                const response = await fetch(`${BACKEND_URL}/upload`, {
+                    method: 'POST',
+                    body: formData 
+                });
+
+                const result = await response.json(); 
+
+                if (response.ok) {
+                    // 成功狀態碼 (例如 200)
+                    messageElement.className = 'message-box success';
+                    let successHTML = `✅ **上傳大成功！** 共 ${result.results.length} 個檔案處理完畢。<br><hr>`;
+                    result.results.forEach(item => {
+                        if (item.status === 'success') {
+                            successHTML += `<div class="result-item ok">✔️ ${item.fileName} 上傳成功！</div>`;
+                        } else {
+                            successHTML += `<div class="result-item fail">❌ ${item.fileName} 失敗：${item.error}</div>`;
+                        }
+                    });
+                    messageElement.innerHTML = successHTML;
+                    
+                    // 清除檔案列表
+                    selectedFiles = [];
+                    updateFileListDisplay();
+
+                } else {
+                    // 失敗狀態碼
+                    messageElement.className = 'message-box error';
+                    messageElement.textContent = `❌ 上傳過程發生錯誤！訊息：${result.error || '未知錯誤'}`;
+                }
+
+            } catch (error) {
+                console.error(error);
+                messageElement.className = 'message-box error';
+                messageElement.textContent = `🚨 發生網路連線錯誤！請確認後端服務是否正常運行。`;
+            } finally {
+                uploadButton.disabled = false;
+            }
+        }
+
+        // 初始化顯示
+        updateFileListDisplay();
+    </script>
+</body>
+</html>
