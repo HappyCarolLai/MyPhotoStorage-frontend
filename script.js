@@ -1,9 +1,7 @@
-// script.js (主頁面 - 包含所有相簿管理、照片上傳及強制 focus 刷新邏輯)
+// script.js (主頁面 - 包含所有相簿管理及強制 focus 刷新邏輯)
 
 // ✨ ✨ ✨ 這裡是你後端服務的公開網址！ ✨ ✨ ✨
 const BACKEND_URL = 'https://myphotostorage-backend.zeabur.app'; // <--- 請替換成您的實際網址！
-
-let selectedFiles = []; // 儲存待上傳檔案
 
 // ----------------------------------------------------
 // 輔助與訊息顯示函式
@@ -26,15 +24,25 @@ function showMessage(type, content) {
 // 相簿管理邏輯
 // ----------------------------------------------------
 
-/** 取得並渲染所有相簿列表 (包含下拉選單填充) */
+// 2. SVG 圖示定義
+const iconRename = `
+    <svg class="icon-rename" viewBox="0 0 24 24">
+        <path d="M7.127 22.56L0 23.56L1 16.433L15.367 2.067L22.933 9.633L7.127 22.56ZM2.617 18.233L15.367 5.483L18.517 8.633L5.767 21.383L2.617 18.233Z"/>
+    </svg>`;
+const iconDelete = `
+    <svg class="icon-delete" viewBox="0 0 24 24">
+        <path d="M7 21C6.45 21 5.979 20.804 5.588 20.413C5.196 20.021 5 19.55 5 19V6H4V4H9V3H15V4H20V6H19V19C19 19.55 18.804 20.021 18.413 20.413C18.021 20.804 17.55 21 17 21H7ZM9 17H11V8H9V17ZM13 17H15V8H13V17Z"/>
+    </svg>`;
+
+
+/** 取得並渲染所有相簿列表 (不包含下拉選單填充，因為上傳功能已移到別頁) */
 async function fetchAlbums() {
     // 這裡我們直接使用 #albumListWrapper 內的 #albumList
     const albumListElement = document.getElementById('albumList'); 
-    const targetAlbumSelect = document.getElementById('targetAlbumSelect');
     
-    // ⭐ 確保元素存在，特別是 #albumListWrapper 內的 #albumList
-    if (!albumListElement || !targetAlbumSelect) {
-        console.error('albumList 或 targetAlbumSelect 元素未找到。');
+    // ⭐ 確保元素存在
+    if (!albumListElement) {
+        console.error('albumList 元素未找到。');
         return;
     }
 
@@ -44,7 +52,6 @@ async function fetchAlbums() {
         const albums = await response.json();
 
         albumListElement.innerHTML = ''; // 清空列表
-        targetAlbumSelect.innerHTML = ''; // 清空下拉選單
         
         if (albums.length === 0) {
             albumListElement.innerHTML = '<p>尚未建立任何留影簿。</p>';
@@ -52,16 +59,7 @@ async function fetchAlbums() {
         }
 
         albums.forEach(album => {
-            // 1. 填充上傳目標下拉選單
-            const option = document.createElement('option');
-            option.value = album._id;
-            option.textContent = album.name;
-            if (album.name === '未分類相簿') {
-                option.selected = true;
-            }
-            targetAlbumSelect.appendChild(option);
-
-            // 2. 渲染相簿卡片
+            // 渲染相簿卡片
             const albumCard = document.createElement('a'); 
             albumCard.className = 'album-card';
             albumCard.setAttribute('data-id', album._id);
@@ -73,20 +71,21 @@ async function fetchAlbums() {
             let actionsHtml = '';
             
             if (album.name !== '未分類相簿') {
+                // 2. 更名與刪除按鍵挪到下方，使用 SVG 圖示與 title 懸停提示
                 actionsHtml = `
                     <div class="album-actions">
-                        <button onclick="showRenameModal('${album._id}', '${album.name}'); event.stopPropagation();" class="rename">📝 更名</button>
-                        <button onclick="deleteAlbum('${album._id}', '${album.name}'); event.stopPropagation();" class="delete">🗑️ 刪除</button>
+                        <button onclick="showRenameModal('${album._id}', '${album.name}');" title="更名">${iconRename}</button>
+                        <button onclick="deleteAlbum('${album._id}', '${album.name}');" title="刪除">${iconDelete}</button>
                     </div>
                 `;
             }
 
             albumCard.innerHTML = `
-                ${actionsHtml}
+                
                 <h3>${album.name}</h3>
                 <p>留影數量: ${album.photoCount}</p>
                 <p>建立於: ${new Date(album.createdAt).toLocaleDateString()}</p>
-            `;
+                ${actionsHtml} `;
             albumListElement.appendChild(albumCard);
         });
     } catch (error) {
@@ -194,112 +193,8 @@ async function deleteAlbum(albumId, albumName) {
 }
 
 // ----------------------------------------------------
-// 批次上傳邏輯
+// (3. 移除批次上傳邏輯)
 // ----------------------------------------------------
-
-// 拖曳 & 選擇檔案邏輯
-const dropArea = document.getElementById('dropArea');
-const fileInput = document.getElementById('photoFile');
-
-if (dropArea && fileInput) {
-    dropArea.addEventListener('click', () => fileInput.click());
-    dropArea.addEventListener('dragover', (e) => { e.preventDefault(); dropArea.classList.add('drag-over'); });
-    dropArea.addEventListener('dragleave', () => { dropArea.classList.remove('drag-over'); });
-    dropArea.addEventListener('drop', (e) => {
-        e.preventDefault();
-        dropArea.classList.remove('drag-over');
-        handleFiles(e.dataTransfer.files);
-    });
-    fileInput.addEventListener('change', (e) => {
-        handleFiles(e.target.files);
-    });
-}
-
-
-function handleFiles(files) {
-    selectedFiles = Array.from(files);
-    updateFileListDisplay();
-}
-
-/** 更新檔案列表顯示 */
-function updateFileListDisplay() {
-    const fileListElement = document.getElementById('fileList');
-    const uploadButton = document.getElementById('uploadButton');
-    if (!fileListElement || !uploadButton) return;
-    
-    if (selectedFiles.length === 0) {
-        fileListElement.style.display = 'none'; 
-        uploadButton.disabled = true;
-        return;
-    }
-    fileListElement.style.display = 'block';
-    uploadButton.disabled = false;
-    
-    let listHTML = `<p>已選取 **${selectedFiles.length}** 個留影檔案：</p><ul>`;
-    selectedFiles.forEach(file => {
-        listHTML += `<li>${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)</li>`;
-    });
-    listHTML += '</ul>';
-    fileListElement.innerHTML = listHTML;
-}
-
-/** 執行上傳 (新增目標相簿 ID) */
-async function uploadPhoto() {
-    const uploadButton = document.getElementById('uploadButton');
-    const targetAlbumSelect = document.getElementById('targetAlbumSelect');
-    const fileInput = document.getElementById('photoFile'); 
-
-    if (!uploadButton || !targetAlbumSelect || !fileInput) return;
-
-    if (selectedFiles.length === 0) {
-        showMessage('error', '❌ 請先選擇檔案！');
-        return;
-    }
-
-    uploadButton.disabled = true;
-    showMessage('loading', `🚀 正在上傳 **${selectedFiles.length}** 個留影檔案，請稍候...`);
-    
-    const targetAlbumId = targetAlbumSelect.value; 
-
-    const formData = new FormData();
-    selectedFiles.forEach(file => {
-        formData.append('photos', file); 
-    });
-    formData.append('targetAlbumId', targetAlbumId); 
-
-    try {
-        const response = await fetch(`${BACKEND_URL}/upload`, {
-            method: 'POST',
-            body: formData 
-        });
-        
-        const result = await response.json();
-        
-        if (response.ok) {
-            let successCount = result.results.filter(item => item.status === 'success').length;
-            
-            let successHTML = `✅ **上傳成功！** 成功上傳 ${successCount} 個檔案。<br><hr>`;
-            result.results.forEach(item => {
-                const statusText = item.status === 'success' ? '✔️ 成功' : `❌ 失敗：${item.error}`;
-                successHTML += `<div>${statusText} - ${item.fileName}</div>`;
-            });
-            showMessage('success', successHTML);
-            
-            fetchAlbums(); 
-            
-            selectedFiles = [];
-            fileInput.value = ''; // 強制清空檔案輸入欄位
-            updateFileListDisplay();
-        } else {
-            showMessage('error', `❌ 上傳過程發生錯誤！訊息：${result.error || '未知錯誤'}`);
-        }
-    } catch (error) {
-        console.error(error);
-        showMessage('error', `🚨 發生網路連線錯誤！請確認後端服務是否正常運行。`);
-    } finally {
-        uploadButton.disabled = false;
-    }
-}
 
 // ----------------------------------------------------
 // 初始化與 Modal 關閉
@@ -325,10 +220,9 @@ document.addEventListener('DOMContentLoaded', () => {
     window.renameAlbum = renameAlbum;
     window.deleteAlbum = deleteAlbum;
     window.addNewAlbum = addNewAlbum;
-    window.uploadPhoto = uploadPhoto;
+    // 移除 window.uploadPhoto
     
     fetchAlbums();
-    updateFileListDisplay();
 
     // ----------------------------------------------------
     // ⭐ 核心修正：監聽視窗焦點 (Focus Event) 進行強制刷新

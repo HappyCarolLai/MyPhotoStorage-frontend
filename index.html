@@ -13,40 +13,25 @@
         <div id="message" class="message-box" style="display:none;"></div>
 
         <div class="album-section">
-            <h2>我的留影簿</h2>
             <div id="albumListWrapper" class="album-list-wrapper">
                 <div id="albumList" class="album-grid">
                     </div>
             </div>
-            <button onclick="document.getElementById('addAlbumModal').style.display='block'" class="button create-album-button">新增留影簿</button>
-        </div>
-
-        <hr>
-
-        <div class="upload-section">
-            <h2>上傳新留影</h2>
-            <div class="upload-controls">
-                
-                <div class="upload-top-bar">
-                    <div class="select-album-group">
-                        <label for="targetAlbumSelect">選取留影相簿:</label>
-                        <select id="targetAlbumSelect"></select>
-                    </div>
-                </div>
-
-                <div id="dropArea">
-                    <p>點擊此處選取照片，或將照片拖曳到這裡</p>
-                    <input type="file" id="photoFile" multiple accept="image/*" style="display: none;">
-                </div>
-            </div>
-
-            <div id="fileList" style="display: none;">
-                </div>
             
-            <button onclick="uploadPhoto()" id="uploadButton" disabled>開始上傳</button>
+            <div class="main-actions-bar">
+                <button onclick="document.getElementById('addAlbumModal').style.display='block'" class="button create-album-button">
+                    ➕ 新增留影簿
+                </button>
+                <button onclick="window.location.href='upload.html'" class="button upload-album-button">
+                    📤 上傳新留影
+                </button>
+            </div>
+            
         </div>
 
-    </div>
+        <hr style="margin: 30px 0;">
+
+        </div>
 
     <div id="addAlbumModal" class="modal">
         <div class="modal-content">

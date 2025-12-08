@@ -359,3 +359,44 @@ input[type="text"]:focus, select:focus {
     font-size: 0.7em;
     margin: 3px;
 }
+
+/* 按鈕圖示優化 (SVG) */
+.album-actions {
+    display: flex;
+    justify-content: flex-end; /* 將按鈕推到最右邊 */
+    gap: 10px;
+    padding-top: 10px;
+    border-top: none; /* 拿掉分隔線，讓按鈕看起來更簡潔 */
+    position: absolute; /* 相對相簿卡片絕對定位 */
+    bottom: 10px;
+    right: 15px;
+}
+
+.album-actions button {
+    /* 移除原有按鈕樣式，使其看起來像透明的圖示按鈕 */
+    background: none;
+    border: none;
+    padding: 5px;
+    margin: 0;
+    line-height: 1;
+    font-size: 1.2em;
+    color: #6C757D; /* 預設顏色 */
+    transition: color 0.2s, transform 0.1s;
+    box-shadow: none;
+    width: auto;
+    height: auto;
+}
+
+.album-actions button:hover {
+    color: #A08878; /* 懸停變色 */
+    background: rgba(160, 136, 120, 0.1);
+    transform: none;
+}
+
+/* SVG 圖示基礎樣式 */
+.icon-delete, .icon-rename {
+    width: 18px;
+    height: 18px;
+    fill: currentColor;
+    vertical-align: middle;
+}

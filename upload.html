@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>上傳新留影 - 伴伴日常留影集</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <button id="backToAlbums" onclick="window.location.href='index.html'" class="button create-album-button" style="margin-bottom: 20px;">
+            ⬅️ 返回留影簿列表
+        </button>
+        
+        <h1>上傳新留影</h1>
+
+        <div id="message" class="message-box" style="display:none;"></div>
+        
+        <div class="upload-section">
+            <h2>檔案上傳</h2>
+            <div class="upload-controls">
+                
+                <div class="upload-top-bar">
+                    <div class="select-album-group">
+                        <label for="targetAlbumSelect">選取目標留影簿:</label>
+                        <select id="targetAlbumSelect"></select>
+                    </div>
+                </div>
+
+                <div id="dropArea">
+                    <p>點擊此處選取照片，或將照片拖曳到這裡</p>
+                    <input type="file" id="photoFile" multiple accept="image/*" style="display: none;">
+                </div>
+            </div>
+
+            <div id="fileList" style="display: none;">
+                </div>
+            
+            <button onclick="uploadPhoto()" id="uploadButton" disabled>開始上傳</button>
+        </div>
+
+    </div>
+
+    <script src="upload.js"></script>
+</body>
+</html>
