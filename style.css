@@ -1,4 +1,4 @@
-/* style.css - 簡約現代質感風格 */
+/* style.css - 簡約現代質感風格 (優化版) */
 
 /* ---------------------------------------------------- */
 /* 全域設定與字體 */
@@ -6,116 +6,107 @@
 
 body {
     font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-    /* 乾淨、輕盈的底色 */
     background-color: #F8F9FA; 
-    color: #333333; /* 經典深灰 */
+    color: #333333; 
     margin: 0;
     padding: 0;
     line-height: 1.6;
 }
 
 .container {
-    max-width: 1000px; /* 限制主容器寬度，避免過寬 */
+    max-width: 1000px;
     margin: 40px auto;
     padding: 30px;
     background-color: #FFFFFF; 
     border-radius: 12px;
-    /* 簡約輕巧的陰影 */
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    position: relative; /* 讓絕對定位元素參考 */
 }
 
 h1 {
-    color: #555555; /* 柔和的標題色 */
+    color: #555555;
     text-align: center;
     padding-bottom: 15px;
-    border-bottom: 2px solid #E9ECEF; /* 淺灰色分隔線 */
-    margin-bottom: 30px;
-    font-weight: 300; /* 讓標題更輕盈有質感 */
-}
-
-h2 {
-    color: #495057; 
-    border-bottom: 1px solid #E9ECEF;
-    padding-bottom: 8px;
-    margin-top: 30px;
+    border-bottom: 2px solid #E9ECEF;
     margin-bottom: 20px;
-    font-weight: 500;
+    font-weight: 300;
 }
 
 /* ---------------------------------------------------- */
-/* 按鈕樣式 (現代柔和棕色/灰色主題) */
+/* 按鈕與圖示通用樣式 */
 /* ---------------------------------------------------- */
 
-button, .button {
-    /* 主色調：溫暖的棕色/木色 */
+/* SVG 圖示按鈕 (無背景) */
+.icon-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 8px;
+    color: #6C757D;
+    transition: color 0.3s, transform 0.2s;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.icon-btn:hover {
+    color: #A08878;
+    transform: translateY(-2px);
+    background-color: rgba(0,0,0,0.03);
+    border-radius: 50%;
+}
+
+.icon-btn svg {
+    width: 28px; /* 圖示大小 */
+    height: 28px;
+    fill: currentColor;
+}
+
+/* 標準按鈕 (實心) */
+.btn-primary {
     background-color: #A08878; 
     color: white;
     border: none;
-    padding: 12px 25px;
-    margin: 5px 0;
-    border-radius: 8px;
+    padding: 8px 16px; /* 稍微縮小 padding 以適應緊湊佈局 */
+    border-radius: 6px;
     cursor: pointer;
-    font-size: 1em;
+    font-size: 0.95em;
     font-weight: 600;
-    transition: background-color 0.3s ease, transform 0.1s;
-    outline: none;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: background-color 0.3s;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
 }
 
-button:hover, .button:hover {
+.btn-primary:hover:not(:disabled) {
     background-color: #8C7665;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 }
 
-button:active, .button:active {
-    transform: translateY(1px);
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-
-button:disabled {
+.btn-primary:disabled {
     background-color: #CCCCCC;
-    box-shadow: none;
     cursor: not-allowed;
 }
 
-/* 輔助按鈕 (例如：新增相簿按鈕) */
-.create-album-button {
-    background-color: #6C757D; /* 沉穩的灰色 */
-    margin-top: 20px;
-}
-.create-album-button:hover {
-    background-color: #5A6268;
-}
-
-/* 特殊按鈕 - 刪除 */
-.delete-button {
-    background-color: #DC3545; /* 標準紅色 */
-}
-.delete-button:hover {
-    background-color: #C82333;
-}
-
 /* ---------------------------------------------------- */
-/* 相簿列表與卡片 - 寬幅解決方案 */
+/* 首頁：相簿列表與操作列 */
 /* ---------------------------------------------------- */
 
-.album-section {
-    /* 確保相簿區塊不會被其他元素影響高度 */
+.main-actions-bar {
     display: flex;
-    flex-direction: column;
+    justify-content: flex-end; /* 靠右對齊 */
+    gap: 15px;
+    margin-top: 20px;
+    padding-top: 10px;
+    border-top: 1px solid #E9ECEF;
 }
 
-/* ⭐ 解決寬幅問題的關鍵：限制相簿網格顯示高度，並加入滾動條 */
 .album-list-wrapper {
-    max-height: 450px; /* 您可以調整這個高度 */
-    overflow-y: auto; /* 垂直滾動 */
-    padding-right: 15px; /* 為滾動條預留空間 */
-    /* 美化滾動條背景 */
+    max-height: 500px; 
+    overflow-y: auto; 
+    padding-right: 10px; 
     background-color: #F4F4F4; 
     border-radius: 8px;
     padding: 15px;
-    margin-bottom: 20px;
 }
 
 .album-grid {
@@ -124,7 +115,7 @@ button:disabled {
     gap: 20px;
 }
 
-.album-card, .photo-card {
+.album-card {
     display: flex;
     flex-direction: column;
     text-decoration: none;
@@ -134,12 +125,12 @@ button:disabled {
     border-radius: 10px;
     border: 1px solid #E9ECEF;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    transition: transform 0.2s, box-shadow 0.2s;
     position: relative;
-    min-height: 120px; /* 統一卡片高度 */
+    min-height: 100px;
 }
 
-.album-card:hover, .photo-card:hover {
+.album-card:hover {
     transform: translateY(-3px);
     box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
     background-color: #FFFFFF;
@@ -147,124 +138,166 @@ button:disabled {
 
 .album-card h3 {
     margin-top: 0;
-    color: #495057; 
     font-size: 1.2em;
-}
-.album-card p {
-    font-size: 0.9em;
-    color: #6C757D;
-    margin: 2px 0;
-}
-
-.album-actions {
-    margin-top: auto; /* 將操作按鈕推到底部 */
-    padding-top: 10px;
-    border-top: 1px solid #E9ECEF;
-    text-align: right;
-}
-
-.album-actions button {
-    margin-left: 5px;
-    padding: 4px 8px;
-    font-size: 0.75em;
-    border-radius: 6px;
-}
-
-/* ---------------------------------------------------- */
-/* 照片上傳區 */
-/* ---------------------------------------------------- */
-
-.upload-section {
-    padding: 25px;
-    margin-top: 30px;
-    background-color: #F4F4F4; /* 淺灰色，區分上傳區 */
-    border-radius: 12px;
-}
-
-.upload-top-bar {
-    display: flex;
-    justify-content: flex-start;
-    align-items: center;
-    margin-bottom: 15px;
-}
-
-.select-album-group {
-    display: flex;
-    align-items: center;
-    font-size: 1em;
     color: #495057;
 }
 
-#dropArea {
-    border: 3px dashed #A08878; /* 溫暖的棕色虛線 */
-    border-radius: 10px;
-    padding: 30px;
-    margin: 10px 0 20px 0;
+.album-card-actions {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    display: flex;
+    gap: 5px;
+}
+
+.album-card-actions button {
+    background: none;
+    border: none;
     cursor: pointer;
-    background-color: #FFFFFF;
-    transition: background-color 0.3s;
-    text-align: center;
-    color: #6C757D;
-    font-weight: 500;
+    padding: 4px;
+    color: #adb5bd;
+    transition: color 0.2s;
+}
+.album-card-actions button:hover {
+    color: #495057;
+}
+.album-card-actions svg {
+    width: 18px;
+    height: 18px;
+    fill: currentColor;
 }
 
-#dropArea:hover, #dropArea.drag-over {
-    background-color: #F0F0F0; 
-}
 
-#fileList {
-    text-align: left;
-    margin: 20px 0;
-    padding: 15px;
-    border: 1px solid #D1D8DF;
+/* ---------------------------------------------------- */
+/* 上傳頁面 (緊湊佈局) */
+/* ---------------------------------------------------- */
+
+.upload-header-bar {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 20px;
+    background: #F4F4F4;
+    padding: 10px 15px;
     border-radius: 8px;
-    background-color: #FFFFFF;
 }
 
-#fileList ul {
-    list-style: disc;
-    padding-left: 20px;
-    margin: 0;
-    font-size: 0.9em;
-}
-
-/* ---------------------------------------------------- */
-/* 表單與輸入欄位 */
-/* ---------------------------------------------------- */
-
-input[type="text"], select, textarea {
-    width: auto; /* 讓 select 欄位不佔滿 */
-    min-width: 250px;
-    padding: 10px;
-    margin-left: 10px;
-    display: inline-block;
+.upload-header-bar select {
+    flex-grow: 1; /* 讓選單佔據中間空間 */
+    padding: 8px;
     border: 1px solid #D1D8DF;
     border-radius: 6px;
-    box-sizing: border-box;
     font-size: 1em;
-    color: #333;
-    transition: border-color 0.2s;
 }
 
-input[type="text"]:focus, select:focus {
-    border-color: #A08878;
-    box-shadow: 0 0 0 0.2rem rgba(160, 136, 120, 0.25);
+#dropArea {
+    border: 3px dashed #A08878;
+    border-radius: 10px;
+    min-height: 250px; /* 增加高度容納預覽 */
+    padding: 20px;
+    background-color: #FFFFFF;
+    transition: background-color 0.3s;
+    position: relative;
+}
+
+#dropArea.drag-over {
+    background-color: #F0F0F0;
+}
+
+/* 預覽網格 (位於 Drop Area 內部) */
+.preview-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: 10px;
+    width: 100%;
+    margin-top: 20px;
+}
+
+.preview-item {
+    position: relative;
+    aspect-ratio: 1; /* 正方形 */
+    border-radius: 6px;
+    overflow: hidden;
+    border: 1px solid #ddd;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.preview-item img, .preview-item video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.empty-state-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    color: #6C757D;
+    pointer-events: none; /* 讓點擊事件穿透到父層 */
+    width: 100%;
 }
 
 /* ---------------------------------------------------- */
-/* Modal 彈出視窗 */
+/* 相簿內頁 & 燈箱 (自適應優化) */
 /* ---------------------------------------------------- */
 
+.photo-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 15px;
+    padding-top: 15px;
+}
+
+.photo-card {
+    background: #fff;
+    border: 1px solid #E9ECEF;
+    border-radius: 8px;
+    padding: 8px;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+}
+
+/* 相簿列表中的縮圖 (包含影片) */
+.photo-card img, .photo-card video {
+    width: 100%;
+    height: 150px; /* 固定高度 */
+    object-fit: cover;
+    border-radius: 6px;
+    cursor: pointer;
+    background: #000; /* 影片載入前的背景 */
+}
+
+/* 影片標記圖示 (覆蓋在縮圖上) */
+.video-indicator {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: rgba(0,0,0,0.6);
+    color: white;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    pointer-events: none;
+}
+
+/* Modal 彈出視窗 (共用) */
 .modal {
     display: none;
     position: fixed;
-    z-index: 10;
+    z-index: 100;
     left: 0;
     top: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
-    backdrop-filter: blur(5px);
+    background-color: rgba(0, 0, 0, 0.6); /* 加深背景 */
+    backdrop-filter: blur(3px);
 }
 
 .modal-content {
@@ -274,129 +307,72 @@ input[type="text"]:focus, select:focus {
     width: 90%;
     max-width: 400px;
     border-radius: 12px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
 }
 
-.close {
-    color: #6C757D;
-    float: right;
-    font-size: 30px;
-    font-weight: 300;
-    line-height: 1;
+/* 燈箱特化樣式 (自適應) */
+#lightbox {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(0, 0, 0, 0.9);
 }
 
-.close:hover,
-.close:focus {
-    color: #A08878;
-    text-decoration: none;
-    cursor: pointer;
-}
-
-/* ---------------------------------------------------- */
-/* 訊息提示 */
-/* ---------------------------------------------------- */
-
-.message-box {
-    padding: 15px;
-    margin: 15px 0;
-    border-radius: 8px;
-    font-weight: 500;
-    text-align: center;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-
-.message-box.success {
-    background-color: #E6F7E6; 
-    color: #28A745;
-    border: 1px solid #C3E6CB;
-}
-
-.message-box.error {
-    background-color: #FEEEEE; 
-    color: #DC3545;
-    border: 1px solid #F5C6CB;
-}
-
-.message-box.loading, .message-box.info {
-    background-color: #EAEFF4; 
-    color: #007BFF;
-    border: 1px solid #B8DAFF;
-}
-
-/* ---------------------------------------------------- */
-/* 相簿內頁 (album.html) 樣式覆蓋 */
-/* ---------------------------------------------------- */
-
-.photo-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-    gap: 20px;
-    padding-top: 10px;
-}
-
-.photo-card {
-    padding: 10px;
-    text-align: center;
-}
-
-.photo-card img {
+.lightbox-content-wrapper {
+    position: relative;
     width: 100%;
-    height: 120px;
-    object-fit: cover;
-    border-radius: 8px;
-    margin-bottom: 8px;
-    border: 1px solid #E9ECEF;
-}
-
-.photo-card h4 {
-    font-size: 0.9em;
-    margin: 5px 0;
-    color: #495057;
-}
-
-.photo-actions button {
-    padding: 4px 8px;
-    font-size: 0.7em;
-    margin: 3px;
-}
-
-/* 按鈕圖示優化 (SVG) */
-.album-actions {
+    height: 100%;
     display: flex;
-    justify-content: flex-end; /* 將按鈕推到最右邊 */
-    gap: 10px;
-    padding-top: 10px;
-    border-top: none; /* 拿掉分隔線，讓按鈕看起來更簡潔 */
-    position: absolute; /* 相對相簿卡片絕對定位 */
-    bottom: 10px;
-    right: 15px;
+    align-items: center;
+    justify-content: center;
 }
 
-.album-actions button {
-    /* 移除原有按鈕樣式，使其看起來像透明的圖示按鈕 */
-    background: none;
-    border: none;
-    padding: 5px;
-    margin: 0;
-    line-height: 1;
-    font-size: 1.2em;
-    color: #6C757D; /* 預設顏色 */
-    transition: color 0.2s, transform 0.1s;
-    box-shadow: none;
+/* ⭐ 關鍵：確保圖片/影片在燈箱中自適應視窗 */
+#lightboxImage, #lightboxVideo {
+    max-width: 95vw;
+    max-height: 85vh;
     width: auto;
     height: auto;
+    object-fit: contain; /* 保持比例完整顯示 */
+    box-shadow: 0 0 20px rgba(0,0,0,0.5);
+    border-radius: 4px;
 }
 
-.album-actions button:hover {
-    color: #A08878; /* 懸停變色 */
-    background: rgba(160, 136, 120, 0.1);
-    transform: none;
+.nav-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    border: none;
+    padding: 15px;
+    font-size: 24px;
+    cursor: pointer;
+    border-radius: 50%;
+    transition: background 0.3s;
+    user-select: none;
+}
+.nav-btn:hover { background: rgba(255, 255, 255, 0.3); }
+.prev { left: 20px; }
+.next { right: 20px; }
+
+.close {
+    position: absolute;
+    top: 20px;
+    right: 30px;
+    color: #fff;
+    font-size: 40px;
+    cursor: pointer;
+    z-index: 101;
 }
 
-/* SVG 圖示基礎樣式 */
-.icon-delete, .icon-rename {
-    width: 18px;
-    height: 18px;
-    fill: currentColor;
-    vertical-align: middle;
+/* 訊息框 */
+.message-box {
+    padding: 10px;
+    margin-bottom: 15px;
+    border-radius: 6px;
+    text-align: center;
+    font-size: 0.9em;
 }
+.message-box.success { background-color: #E6F7E6; color: #28A745; }
+.message-box.error { background-color: #FEEEEE; color: #DC3545; }
+.message-box.loading { background-color: #EAEFF4; color: #007BFF; }

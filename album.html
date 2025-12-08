@@ -9,24 +9,25 @@
 </head>
 <body>
     <div class="container">
-        <button id="backToAlbums" onclick="window.close()" class="btn btn-secondary" style="margin-bottom: 20px;">
-            ⬅️ 關閉分頁並返回相簿列表
+        <button id="backToAlbums" onclick="window.close()" class="icon-btn" title="關閉分頁並返回" style="margin-bottom: 20px;">
+            <svg viewBox="0 0 24 24">
+                <path d="M20,11V13H8L13.5,18.5L12.08,19.92L4.16,12L12.08,4.08L13.5,5.5L8,11H20Z" />
+            </svg>
         </button>
         
         <div id="photoView">
-            <div class="action-bar">
-                <h2 id="currentAlbumName">相簿內容</h2>
+            <div class="action-bar" style="display: flex; align-items: center; border-bottom: 1px solid #E9ECEF; padding-bottom: 10px; margin-bottom: 20px;">
+                <h2 id="currentAlbumName" style="border: none; margin: 0; padding: 0;">相簿內容</h2>
                 
-                <div id="bulkActions" style="display: none; margin-left: auto;">
-                    <span id="selectedCount" style="margin-right: 15px; font-weight: bold;">已選取 0 張</span>
-                    <button id="bulkMoveBtn" class="btn btn-primary" onclick="showMovePhotoModal(true)">📦 批量移動</button>
-                    <button id="bulkDeleteBtn" class="btn btn-danger" onclick="bulkDeletePhotos()">🗑️ 批量刪除</button>
+                <div id="bulkActions" style="display: none; margin-left: auto; align-items: center; gap: 10px;">
+                    <span id="selectedCount" style="font-weight: bold; color: #666;">已選取 0 張</span>
+                    <button id="bulkMoveBtn" class="btn-primary" onclick="showMovePhotoModal(true)">📦 批量移動</button>
+                    <button id="bulkDeleteBtn" class="btn-primary" style="background-color: #DC3545;" onclick="bulkDeletePhotos()">🗑️ 批量刪除</button>
                 </div>
-                
             </div>
             
             <div id="photoGrid" class="photo-grid"> 
-                <p id="noPhotosMessage" style="margin-top: 30px; display: none;">此相簿目前沒有照片。</p>
+                <p id="noPhotosMessage" style="margin-top: 30px; display: none; text-align: center; color: #888;">此相簿目前沒有照片。</p>
             </div>
         </div>
         
@@ -37,10 +38,10 @@
                 <span class="close" onclick="document.getElementById('movePhotoModal').style.display='none'">&times;</span>
                 <h3>移動照片</h3>
                 <p id="movePhotoMessage">將 <span id="photoToMoveName" style="font-weight: bold;"></span> 移動到：</p>
-                <select id="targetMoveAlbumSelect"></select>
-                <div class="modal-actions">
-                    <button id="confirmMovePhoto" class="btn btn-primary">確認移動</button>
-                    <button class="btn btn-secondary" onclick="document.getElementById('movePhotoModal').style.display='none'">取消</button>
+                <select id="targetMoveAlbumSelect" style="width: 100%; margin: 10px 0; padding: 8px; border-radius: 6px; border: 1px solid #ccc;"></select>
+                <div class="modal-actions" style="margin-top: 20px; text-align: right;">
+                    <button class="icon-btn" onclick="document.getElementById('movePhotoModal').style.display='none'" style="font-size: 1rem; margin-right: 10px;">取消</button>
+                    <button id="confirmMovePhoto" class="btn-primary">確認移動</button>
                 </div>
             </div>
         </div>
@@ -48,11 +49,10 @@
         <div id="lightbox" class="modal" style="display: none;">
             <span class="close" onclick="closeLightbox()">&times;</span>
             
-            <div id="imageCaption" class="caption"></div> 
+            <div id="imageCaption" class="caption" style="position: absolute; bottom: 20px; left: 0; width: 100%; text-align: center; color: white; text-shadow: 0 1px 3px rgba(0,0,0,0.8); pointer-events: none;"></div> 
             
             <div class="lightbox-content-wrapper">
                 <button id="prevBtn" class="nav-btn prev" onclick="navigatePhoto(-1)">&#10094;</button>
-                <img id="lightboxImage" src="" alt="放大圖片">
                 <button id="nextBtn" class="nav-btn next" onclick="navigatePhoto(1)">&#10095;</button>
             </div>
         </div>
