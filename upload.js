@@ -1,15 +1,9 @@
-// upload.js (專門用於處理上傳邏輯)
+// upload.js (支援影片上傳與縮圖生成)
 
-// ✨ ✨ ✨ 這裡是你後端服務的公開網址！ ✨ ✨ ✨
-const BACKEND_URL = 'https://myphotostorage-backend.zeabur.app'; // <--- 請替換成您的實際網址！
+const BACKEND_URL = 'https://myphotostorage-backend.zeabur.app';
 
-let selectedFiles = []; // 儲存待上傳檔案
+let selectedFiles = [];
 
-// ----------------------------------------------------
-// 輔助與訊息顯示函式
-// ----------------------------------------------------
-
-/** 顯示訊息，3秒後自動隱藏 */
 function showMessage(type, content) {
     const messageElement = document.getElementById('message');
     if (!messageElement) return; 
@@ -22,11 +16,6 @@ function showMessage(type, content) {
     }, 3000);
 }
 
-// ----------------------------------------------------
-// 相簿列表載入 (僅用於填充下拉選單)
-// ----------------------------------------------------
-
-/** 取得並渲染所有相簿列表 (僅填充下拉選單) */
 async function fetchAlbumsForSelect() {
     const targetAlbumSelect = document.getElementById('targetAlbumSelect');
     
@@ -37,7 +26,7 @@ async function fetchAlbumsForSelect() {
         const response = await fetch(`${BACKEND_URL}/api/albums`);
         const albums = await response.json();
 
-        targetAlbumSelect.innerHTML = ''; // 清空下拉選單
+        targetAlbumSelect.innerHTML = '';
         
         if (albums.length === 0) {
             targetAlbumSelect.innerHTML = '<option>尚未建立任何留影簿</option>';
@@ -61,40 +50,73 @@ async function fetchAlbumsForSelect() {
     }
 }
 
-
-// ----------------------------------------------------
-// 批次上傳邏輯
-// ----------------------------------------------------
-
 function handleFiles(files) {
-    // 過濾非圖片檔案，但這裡是前端，先保持原本邏輯
     selectedFiles = Array.from(files);
     updateFileListDisplay();
 }
 
-/** 更新檔案列表顯示 */
-function updateFileListDisplay() {
+/** 生成影片縮圖 */
+function generateVideoThumbnail(file) {
+    return new Promise((resolve, reject) => {
+        const video = document.createElement('video');
+        video.preload = 'metadata';
+        video.muted = true;
+        
+        video.onloadeddata = () => {
+            video.currentTime = 1; // 取第1秒的畫面
+        };
+        
+        video.onseeked = () => {
+            const canvas = document.createElement('canvas');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            
+            canvas.toBlob((blob) => {
+                resolve(blob);
+            }, 'image/jpeg', 0.8);
+        };
+        
+        video.onerror = () => reject(new Error('無法載入影片'));
+        
+        video.src = URL.createObjectURL(file);
+    });
+}
+
+/** 更新檔案列表顯示（顯示在 dropArea 內部） */
+async function updateFileListDisplay() {
     const fileListElement = document.getElementById('fileList');
+    const dropPrompt = document.getElementById('dropPrompt');
     const uploadButton = document.getElementById('uploadButton');
-    if (!fileListElement || !uploadButton) return;
+    
+    if (!fileListElement || !uploadButton || !dropPrompt) return;
     
     if (selectedFiles.length === 0) {
-        fileListElement.style.display = 'none'; 
+        fileListElement.style.display = 'none';
+        dropPrompt.style.display = 'block';
         uploadButton.disabled = true;
         return;
     }
+    
+    dropPrompt.style.display = 'none';
     fileListElement.style.display = 'block';
     uploadButton.disabled = false;
     
-    let listHTML = `<p>已選取 **${selectedFiles.length}** 個留影檔案：</p><ul>`;
-    selectedFiles.forEach(file => {
-        listHTML += `<li>${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)</li>`;
-    });
+    let listHTML = `<p style="font-weight: bold; margin-bottom: 10px;">已選取 ${selectedFiles.length} 個檔案：</p><ul style="list-style: none; padding: 0;">`;
+    
+    for (const file of selectedFiles) {
+        const isVideo = file.type.startsWith('video/');
+        const icon = isVideo ? '🎬' : '🖼️';
+        const size = (file.size / 1024 / 1024).toFixed(2);
+        listHTML += `<li style="margin-bottom: 5px;">${icon} ${file.name} (${size} MB)</li>`;
+    }
+    
     listHTML += '</ul>';
     fileListElement.innerHTML = listHTML;
 }
 
-/** 執行上傳 (新增目標相簿 ID) */
+/** 執行上傳（支援影片 + 縮圖生成） */
 async function uploadPhoto() {
     const uploadButton = document.getElementById('uploadButton');
     const targetAlbumSelect = document.getElementById('targetAlbumSelect');
@@ -108,15 +130,27 @@ async function uploadPhoto() {
     }
 
     uploadButton.disabled = true;
-    showMessage('loading', `🚀 正在上傳 **${selectedFiles.length}** 個留影檔案，請稍候...`);
+    showMessage('loading', `🚀 正在上傳 ${selectedFiles.length} 個檔案，請稍候...`);
     
-    const targetAlbumId = targetAlbumSelect.value; 
-
+    const targetAlbumId = targetAlbumSelect.value;
     const formData = new FormData();
-    selectedFiles.forEach(file => {
-        formData.append('photos', file); 
-    });
-    formData.append('targetAlbumId', targetAlbumId); 
+    
+    // 處理每個檔案，為影片生成縮圖
+    for (const file of selectedFiles) {
+        formData.append('photos', file);
+        
+        // 如果是影片，生成縮圖
+        if (file.type.startsWith('video/')) {
+            try {
+                const thumbnail = await generateVideoThumbnail(file);
+                formData.append('thumbnails', thumbnail, `${file.name}_thumb.jpg`);
+            } catch (error) {
+                console.warn(`無法為影片 ${file.name} 生成縮圖:`, error);
+            }
+        }
+    }
+    
+    formData.append('targetAlbumId', targetAlbumId);
 
     try {
         const response = await fetch(`${BACKEND_URL}/upload`, {
@@ -136,11 +170,10 @@ async function uploadPhoto() {
             });
             showMessage('success', successHTML);
             
-            // ⭐ 核心：通知主頁面刷新，因為數據已改變
-            localStorage.setItem('albums_data_changed', 'true'); 
+            localStorage.setItem('albums_data_changed', 'true');
             
             selectedFiles = [];
-            fileInput.value = ''; // 強制清空檔案輸入欄位
+            fileInput.value = '';
             updateFileListDisplay();
         } else {
             showMessage('error', `❌ 上傳過程發生錯誤！訊息：${result.error || '未知錯誤'}`);
@@ -153,26 +186,24 @@ async function uploadPhoto() {
     }
 }
 
-
-// ----------------------------------------------------
-// 初始化
-// ----------------------------------------------------
-
 document.addEventListener('DOMContentLoaded', () => {
-    // 綁定全域函式
     window.uploadPhoto = uploadPhoto;
     
     fetchAlbumsForSelect();
     updateFileListDisplay();
 
-    // 拖曳 & 選擇檔案邏輯
     const dropArea = document.getElementById('dropArea');
     const fileInput = document.getElementById('photoFile');
 
     if (dropArea && fileInput) {
         dropArea.addEventListener('click', () => fileInput.click());
-        dropArea.addEventListener('dragover', (e) => { e.preventDefault(); dropArea.classList.add('drag-over'); });
-        dropArea.addEventListener('dragleave', () => { dropArea.classList.remove('drag-over'); });
+        dropArea.addEventListener('dragover', (e) => { 
+            e.preventDefault(); 
+            dropArea.classList.add('drag-over'); 
+        });
+        dropArea.addEventListener('dragleave', () => { 
+            dropArea.classList.remove('drag-over'); 
+        });
         dropArea.addEventListener('drop', (e) => {
             e.preventDefault();
             dropArea.classList.remove('drag-over');
@@ -183,7 +214,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
     
-    // ⭐ 額外添加：當使用者從上傳頁返回主頁時，強制讓主頁刷新 (雖然主頁的 focus 監聽已經處理了)
     window.addEventListener('beforeunload', () => {
         localStorage.setItem('albums_data_changed', 'true'); 
     });

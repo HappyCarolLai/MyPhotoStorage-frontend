@@ -8,35 +8,39 @@
 </head>
 <body>
     <div class="container">
-        <button id="backToAlbums" onclick="window.location.href='index.html'" class="button create-album-button" style="margin-bottom: 20px;">
-            ⬅️ 返回留影簿列表
-        </button>
-        
         <h1>上傳新留影</h1>
 
         <div id="message" class="message-box" style="display:none;"></div>
         
         <div class="upload-section">
-            <h2>檔案上傳</h2>
-            <div class="upload-controls">
+            <!-- 頂部操作列：選擇相簿 + 上傳按鈕 + 返回按鈕 -->
+            <div class="upload-top-bar">
+                <div class="select-album-group">
+                    <label for="targetAlbumSelect">選取目標留影簿:</label>
+                    <select id="targetAlbumSelect"></select>
+                </div>
                 
-                <div class="upload-top-bar">
-                    <div class="select-album-group">
-                        <label for="targetAlbumSelect">選取目標留影簿:</label>
-                        <select id="targetAlbumSelect"></select>
-                    </div>
-                </div>
-
-                <div id="dropArea">
-                    <p>點擊此處選取照片，或將照片拖曳到這裡</p>
-                    <input type="file" id="photoFile" multiple accept="image/*" style="display: none;">
-                </div>
+                <button onclick="uploadPhoto()" id="uploadButton" disabled class="button">開始上傳</button>
+                
+                <button id="backToAlbums" onclick="window.location.href='index.html'" class="button btn-icon" title="返回留影簿列表">
+                    <svg class="icon-back" viewBox="0 0 24 24">
+                        <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/>
+                    </svg>
+                    返回留影簿列表
+                </button>
             </div>
 
-            <div id="fileList" style="display: none;">
+            <!-- 拖曳上傳區域（內部顯示檔案列表） -->
+            <div id="dropArea">
+                <div id="dropPrompt">
+                    <p>點擊此處選取照片/影片，或將檔案拖曳到這裡</p>
+                    <p style="font-size: 0.85em; color: #888;">支援格式：圖片 (JPG, PNG, GIF 等) 與影片 (MP4, MOV, AVI 等)</p>
                 </div>
-            
-            <button onclick="uploadPhoto()" id="uploadButton" disabled>開始上傳</button>
+                <div id="fileList" style="display: none;">
+                    <!-- 檔案列表將顯示在這裡 -->
+                </div>
+                <input type="file" id="photoFile" multiple accept="image/*,video/*" style="display: none;">
+            </div>
         </div>
 
     </div>
