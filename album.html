@@ -23,8 +23,8 @@
                 
                 <div id="bulkActions" style="display: none; margin-left: auto; align-items: center; gap: 10px;">
                     <span id="selectedCount" style="font-weight: bold; color: #666;">已選取 0 張</span>
-                    <button id="bulkMoveBtn" class="btn-primary" onclick="showMovePhotoModal(true)">📦 批量移動</button>
-                    <button id="bulkDeleteBtn" class="btn-primary" style="background-color: #DC3545;" onclick="bulkDeletePhotos()">🗑️ 批量刪除</button>
+                    <button id="bulkMoveBtn" class="btn-primary" onclick="showMovePhotoModal(true)">批量移動</button>
+                    <button id="bulkDeleteBtn" class="btn-primary" style="background-color: #666;" onclick="bulkDeletePhotos()">批量刪除</button>
                 </div>
             </div>
             
@@ -36,17 +36,18 @@
         <div id="message" class="message-box success" style="display: none;"></div>
         
         <div id="movePhotoModal" class="modal">
-            <div class="modal-content">
-                <span class="close" onclick="document.getElementById('movePhotoModal').style.display='none'">&times;</span>
-                <h3>移動照片</h3>
-                <p id="movePhotoMessage">將 <span id="photoToMoveName" style="font-weight: bold;"></span> 移動到：</p>
-                <select id="targetMoveAlbumSelect" style="width: 100%; margin: 10px 0; padding: 8px; border-radius: 6px; border: 1px solid #ccc;"></select>
-                <div class="modal-actions" style="margin-top: 20px; text-align: right;">
-                    <button class="icon-btn" onclick="document.getElementById('movePhotoModal').style.display='none'" style="font-size: 1rem; margin-right: 10px;">取消</button>
-                    <button id="confirmMovePhoto" class="btn-primary">確認移動</button>
-                </div>
-            </div>
+    <div class="modal-content">
+        <span class="close" onclick="document.getElementById('movePhotoModal').style.display='none'">&times;</span>
+        <h3>移動留影</h3>
+        <p id="movePhotoMessage">將 <span id="photoToMoveName" style="font-weight: bold;"></span> 移動到：</p>
+        <input type="hidden" id="singleMovePhotoId"> 
+        <select id="targetMoveAlbumSelect" style="width: 100%; margin: 10px 0; padding: 8px; border-radius: 6px; border: 1px solid #ccc;"></select>
+        <div class="modal-actions" style="margin-top: 20px; text-align: right;">
+            <button class="icon-btn" onclick="document.getElementById('movePhotoModal').style.display='none'" style="font-size: 1rem; margin-right: 10px;">取消</button>
+            <button id="confirmMovePhoto" class="btn-primary">確認移動</button>
         </div>
+    </div>
+</div>
         
         <div id="lightbox" class="modal" style="display: none;">
             <span class="close" onclick="closeLightbox()">&times;</span>

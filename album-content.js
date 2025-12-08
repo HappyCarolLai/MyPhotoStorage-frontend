@@ -5,10 +5,20 @@ let currentAlbumId = null;
 let allPhotos = []; 
 let currentPhotoIndex = 0; 
 let selectedPhotoIds = new Set(); 
+let isBulkMove = false; // 追蹤目前是批量移動還是單張移動
 
 function getUrlParams() {
     const params = new URLSearchParams(window.location.search);
     return { id: params.get('id'), name: decodeURIComponent(params.get('name') || '相簿') };
+}
+
+function showMessage(type, content) {
+    const msg = document.getElementById('message');
+    if (!msg) return; 
+    msg.className = `message-box ${type}`;
+    msg.innerHTML = content;
+    msg.style.display = 'block';
+    setTimeout(() => msg.style.display = 'none', 3000);
 }
 
 // 判斷是否為影片檔案
@@ -75,8 +85,7 @@ async function loadAlbumContent() {
     }
 }
 
-// --- 燈箱邏輯 (支援圖片與影片自適應) ---
-
+// --- 燈箱邏輯 --- (略)
 function openLightbox(index) {
     currentPhotoIndex = index;
     const lightbox = document.getElementById('lightbox');
@@ -125,6 +134,7 @@ function closeLightbox() {
     // 停止影片播放
     const video = document.getElementById('lightboxVideo');
     if(video) video.pause();
+    document.removeEventListener('keydown', handleKeyNavigation);
 }
 
 function navigatePhoto(dir) {
@@ -138,7 +148,7 @@ function handleKeyNavigation(e) {
     if (e.key === 'Escape') closeLightbox();
 }
 
-// --- 批量操作 (保持不變，略作精簡) ---
+// --- 選取與刪除邏輯 ---
 
 function handleSelectionClick(e, id) {
     e.stopPropagation();
@@ -148,33 +158,152 @@ function handleSelectionClick(e, id) {
     const bulkDiv = document.getElementById('bulkActions');
     if (selectedPhotoIds.size > 0) {
         bulkDiv.style.display = 'flex';
-        document.getElementById('selectedCount').textContent = `已選 ${selectedPhotoIds.size}`;
+        document.getElementById('selectedCount').textContent = `已選 ${selectedPhotoIds.size} 張`;
     } else {
         bulkDiv.style.display = 'none';
     }
 }
 
 async function bulkDeletePhotos() {
-    if (!confirm(`刪除 ${selectedPhotoIds.size} 張?`)) return;
-    await fetch(`${BACKEND_URL}/api/photos/bulkDelete`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ photoIds: Array.from(selectedPhotoIds) })
-    });
-    window.location.reload();
+    if (!confirm(`確定要刪除這 ${selectedPhotoIds.size} 張留影嗎？`)) return;
+    try {
+        await fetch(`${BACKEND_URL}/api/photos/bulkDelete`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ photoIds: Array.from(selectedPhotoIds) })
+        });
+        showMessage('success', `✅ 成功刪除 ${selectedPhotoIds.size} 張留影。`);
+        loadAlbumContent(); // 重新載入相簿
+    } catch (e) {
+        showMessage('error', '刪除失敗');
+    }
 }
 
 async function singleDeletePhoto(id) {
-    if (!confirm('刪除此照片?')) return;
-    await fetch(`${BACKEND_URL}/api/photos/bulkDelete`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ photoIds: [id] })
-    });
-    window.location.reload();
+    if (!confirm('確定要刪除此留影嗎？')) return;
+    try {
+        await fetch(`${BACKEND_URL}/api/photos/bulkDelete`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ photoIds: [id] })
+        });
+        showMessage('success', '✅ 成功刪除 1 張留影。');
+        loadAlbumContent();
+    } catch (e) {
+        showMessage('error', '刪除失敗');
+    }
 }
 
-// 移動照片 Modal 邏輯需配合 album.html 的 HTML 結構 (此處略過未變動部分)
-// 確保 HTML 中有對應的 Modal 結構即可
+// --- 移動照片邏輯 (新增) ---
 
-document.addEventListener('DOMContentLoaded', loadAlbumContent);
+async function fetchAlbumsForMove() {
+    const select = document.getElementById('targetMoveAlbumSelect');
+    select.innerHTML = '';
+    try {
+        const res = await fetch(`${BACKEND_URL}/api/albums`);
+        const albums = await res.json();
+        
+        albums.forEach(album => {
+            // 排除當前相簿
+            if (album._id === currentAlbumId) return; 
+            
+            const opt = document.createElement('option');
+            opt.value = album._id;
+            opt.textContent = album.name;
+            select.appendChild(opt);
+        });
+        
+        if (select.children.length === 0) {
+            select.innerHTML = '<option value="">無其他相簿可移動</option>';
+            document.getElementById('confirmMovePhoto').disabled = true;
+        } else {
+            document.getElementById('confirmMovePhoto').disabled = false;
+        }
+
+    } catch (e) { 
+        console.error('載入相簿失敗', e);
+        select.innerHTML = '<option value="">載入失敗</option>';
+        document.getElementById('confirmMovePhoto').disabled = true;
+    }
+}
+
+function showMovePhotoModal(isBulk, singleId = null, singleName = null) {
+    isBulkMove = isBulk;
+    document.getElementById('movePhotoModal').style.display = 'block';
+    
+    // 載入相簿清單 (每次開啟都重新載入，確保清單是最新的)
+    fetchAlbumsForMove(); 
+    
+    const messageElement = document.getElementById('movePhotoMessage');
+    const nameElement = document.getElementById('photoToMoveName');
+    
+    if (isBulk) {
+        // 批量移動
+        messageElement.textContent = `將 ${selectedPhotoIds.size} 張留影移動到：`;
+        nameElement.style.display = 'none'; // 隱藏單張名稱顯示
+        document.getElementById('confirmMovePhoto').onclick = executeMovePhoto;
+        
+    } else {
+        // 單張移動
+        if (!singleId) return;
+        messageElement.textContent = `將 `;
+        nameElement.style.display = 'inline';
+        nameElement.textContent = singleName;
+        messageElement.insertAdjacentElement('beforeend', nameElement);
+        messageElement.insertAdjacentText('beforeend', ' 移動到：');
+        
+        // 將單張照片 ID 暫存到確認按鈕的 data 屬性，以便執行時使用
+        document.getElementById('confirmMovePhoto').dataset.singleId = singleId;
+        document.getElementById('confirmMovePhoto').onclick = executeMovePhoto;
+    }
+}
+
+async function executeMovePhoto() {
+    const targetAlbumId = document.getElementById('targetMoveAlbumSelect').value;
+    if (!targetAlbumId) return showMessage('error', '請選擇目標相簿');
+
+    let photoIdsToMove = [];
+    if (isBulkMove) {
+        photoIdsToMove = Array.from(selectedPhotoIds);
+    } else {
+        photoIdsToMove = [document.getElementById('confirmMovePhoto').dataset.singleId];
+    }
+    
+    if (photoIdsToMove.length === 0) return;
+
+    try {
+        const res = await fetch(`${BACKEND_URL}/api/photos/bulkMove`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                photoIds: photoIdsToMove, 
+                newAlbumId: targetAlbumId 
+            })
+        });
+
+        if (res.ok) {
+            showMessage('success', `✅ 成功移動 ${photoIdsToMove.length} 張留影！`);
+        } else {
+            showMessage('error', '移動失敗');
+        }
+
+        document.getElementById('movePhotoModal').style.display = 'none';
+        loadAlbumContent(); // 重新載入相簿內容
+    } catch (e) {
+        showMessage('error', '網路錯誤，移動失敗');
+    }
+}
+
+
+// 暴露給 HTML
+document.addEventListener('DOMContentLoaded', () => {
+    loadAlbumContent();
+    window.openLightbox = openLightbox;
+    window.closeLightbox = closeLightbox;
+    window.navigatePhoto = navigatePhoto;
+    window.handleSelectionClick = handleSelectionClick;
+    window.bulkDeletePhotos = bulkDeletePhotos;
+    window.singleDeletePhoto = singleDeletePhoto;
+    window.showMovePhotoModal = showMovePhotoModal; // 暴露新功能
+    window.executeMovePhoto = executeMovePhoto; // 暴露新功能
+});
