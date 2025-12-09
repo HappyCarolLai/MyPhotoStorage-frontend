@@ -252,7 +252,7 @@ function showRenamePhotoModal(id, oldName) {
     document.getElementById('renamePhotoModal').style.display = 'block';
 }
 
-// --- 執行重新命名邏輯 (最終修正：使用 'name' 鍵值) ---
+// --- 執行重新命名邏輯 (最終修正：正確的鍵值與路由) ---
 
 async function executeRenamePhoto() {
     const id = document.getElementById('renamePhotoId').value;
@@ -263,27 +263,30 @@ async function executeRenamePhoto() {
     
     if (!newNameWithoutExt) return showMessage('error', '新名稱不可為空');
 
-    const newName = newNameWithoutExt + ext; 
-// ⭐ 嘗試使用 name 並加上 albumId
-const albumId = currentAlbumId; // 確保這個變數是可用的
-const requestBody = JSON.stringify({ photoId: id, name: newName, albumId: albumId });
+    const newName = newNameWithoutExt + ext; // 重新組合完整檔名
+    
+    // ⭐ 關鍵修正 1: JSON Body 只傳遞後端期望的 'originalFileName'
+    const requestBody = JSON.stringify({ originalFileName: newName }); 
+    
     document.getElementById('renamePhotoModal').style.display = 'none';
 
     try {
-        console.log("Renaming Photo Request:", { url: `${BACKEND_URL}/api/photos/rename`, body: requestBody });
+        // ⭐ 關鍵修正 2: URL 必須包含 photoId，匹配後端 PUT /api/photos/:id
+        const apiUrl = `${BACKEND_URL}/api/photos/${id}`;
         
-        const res = await fetch(`${BACKEND_URL}/api/photos/rename`, {
+        console.log("Renaming Photo Request:", { url: apiUrl, body: requestBody });
+        
+        const res = await fetch(apiUrl, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: requestBody 
         });
 
         if (res.ok) {
-            // ✅ 成功邏輯：收到 200 狀態碼，執行強制重新載入以確認伺服器變更
+            // ✅ 成功邏輯：強制重新載入以確認伺服器變更
             showMessage('success', `✅ 重新命名請求已送出，頁面將重新載入以確認變更...`);
             
             localStorage.setItem('albums_data_changed', 'true'); 
-            // ⭐ 關鍵：強制重新載入，確認伺服器端的檔名是否已更新
             window.location.reload(); 
             
         } else {
