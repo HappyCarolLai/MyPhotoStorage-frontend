@@ -15,10 +15,21 @@ function getUrlParams() {
 function showMessage(type, content) {
     const msg = document.getElementById('message');
     if (!msg) return; 
+    
+    // 設置錯誤訊息的顯示時間為 8 秒，成功訊息為 3 秒
+    const duration = (type === 'error') ? 8000 : 3000;
+    
     msg.className = `message-box ${type}`;
     msg.innerHTML = content;
     msg.style.display = 'block';
-    setTimeout(() => msg.style.display = 'none', 3000);
+    
+    // 設置定時器來隱藏訊息
+    setTimeout(() => {
+        // 確保只有當前訊息還在顯示時才隱藏
+        if (msg.style.display !== 'none') {
+            msg.style.display = 'none';
+        }
+    }, duration);
 }
 
 // 判斷是否為影片檔案
@@ -241,7 +252,7 @@ function showRenamePhotoModal(id, oldName) {
     document.getElementById('renamePhotoModal').style.display = 'block';
 }
 
-// --- 執行重新命名邏輯 (優化版：更新本地數據和單一卡片) ---
+// --- 執行重新命名邏輯 (最終修正：移除失敗時的 loadAlbumContent 呼叫) ---
 
 async function executeRenamePhoto() {
     const id = document.getElementById('renamePhotoId').value;
@@ -255,6 +266,7 @@ async function executeRenamePhoto() {
 
     const newName = newNameWithoutExt + ext; // 重新組合完整檔名
     
+    // 關閉 Modal
     document.getElementById('renamePhotoModal').style.display = 'none';
 
     try {
@@ -265,15 +277,13 @@ async function executeRenamePhoto() {
         });
 
         if (res.ok) {
+            // ✅ 成功邏輯：更新前端 UI (保持不變)
             showMessage('success', `✅ 成功將留影重新命名為 ${newName}`);
-            
-            // ⭐ 優化：只更新前端狀態和單個 DOM 元素，不重新載入整個相簿
             
             // 1. 更新 allPhotos 陣列 (本地數據)
             const photoIndex = allPhotos.findIndex(p => p._id === id);
             if (photoIndex !== -1) {
                 allPhotos[photoIndex].originalFileName = newName;
-                // 由於檔名變動可能影響燈箱，如果燈箱打開，確保它會顯示新名稱
                 if (document.getElementById('lightbox').style.display === 'flex' && currentPhotoIndex === photoIndex) {
                     document.getElementById('imageCaption').textContent = newName;
                 }
@@ -289,20 +299,26 @@ async function executeRenamePhoto() {
                 }
             }
             
-            // 由於重新命名會觸發主頁面相簿預覽圖更新，通知主頁面更新
             localStorage.setItem('albums_data_changed', 'true'); 
-
+            
         } else {
-            // 處理 API 錯誤回傳
-            const errorData = await res.json().catch(() => ({ message: res.statusText || '未知錯誤' }));
-            showMessage('error', `重新命名失敗: ${errorData.message || '請檢查後端服務'}`);
-            loadAlbumContent(); // 重新載入以恢復原始狀態
+            // ❌ 失敗邏輯：捕捉伺服器錯誤細節，不重載頁面
+            const errorData = await res.json().catch(() => ({ message: res.statusText || 'API 回應格式錯誤或內容為空' }));
+            
+            // ⭐ 記錄詳細錯誤到控制台
+            console.error('重新命名 API 失敗 (Response Details):', res.status, errorData);
+
+            // ⭐ 顯示更詳細、停留 8 秒的錯誤訊息
+            showMessage('error', `❌ 重新命名失敗！ (狀態碼: ${res.status}, 伺服器訊息: ${errorData.message || '無'})。請檢查瀏覽器控制台 (F12) 獲取詳細資訊。`);
+            
+            // ⚠️ 關鍵：移除 loadAlbumContent(); 呼叫
         }
         
     } catch (e) {
-        console.error("重新命名發生錯誤：", e);
-        showMessage('error', '網路錯誤，重新命名失敗');
-        loadAlbumContent(); // 重新載入以恢復原始狀態
+        // ❌ 網路連線錯誤
+        console.error("網路/JSON 解析錯誤：", e);
+        showMessage('error', `❌ 網路連線錯誤或資料處理失敗。請檢查網路或控制台 (F12) 獲取詳細資訊。`);
+        // ⚠️ 關鍵：移除 loadAlbumContent(); 呼叫
     }
 }
 
