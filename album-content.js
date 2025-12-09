@@ -65,6 +65,7 @@ async function loadAlbumContent() {
         }
 
         // 步驟 3: 渲染照片/影片網格
+// 步驟 3: 渲染照片/影片網格
         photos.forEach((photo, index) => {
             const card = document.createElement('div');
             card.className = 'photo-card';
@@ -82,16 +83,28 @@ async function loadAlbumContent() {
                 mediaHtml = `<img src="${photo.githubUrl}" alt="photo">`;
             }
 
+            // ⭐ START: 替換區塊 ⭐
             card.innerHTML = `
-                <input type="checkbox" class="photo-select-checkbox" onclick="handleSelectionClick(event, '${photo._id}')">
+                <input type="checkbox" class="photo-select-checkbox" onclick="handleSelectionClick(event, '${photo._id}', '${photo.originalFileName}')">
                 <div class="media-wrapper" onclick="openLightbox(${index}); event.stopPropagation();">
                     ${mediaHtml}
                 </div>
+                <div class="photo-info">
+                    <span class="photo-filename" title="${photo.originalFileName}">${photo.originalFileName}</span>
+                </div>
                 <div class="photo-actions">
-                    <button onclick="singleDeletePhoto('${photo._id}'); event.stopPropagation();" class="delete">🗑️</button>
-                    <button onclick="showMovePhotoModal(false, '${photo._id}', '${photo.originalFileName}'); event.stopPropagation();" class="move">📦</button>
+                    <button onclick="showRenamePhotoModal('${photo._id}', '${photo.originalFileName}'); event.stopPropagation();" class="icon-btn rename" title="重新命名">
+                        <svg viewBox="0 0 24 24"><path d="M14.06,9.02L15,9.94L5.92,19H5V18.08L14.06,9.02M17.66,3C17.41,3 17.15,3.1 16.96,3.29L15.13,5.12L18.88,8.87L20.71,7.04C21.1,6.65 21.1,6 20.71,5.63L18.37,3.29C18.17,3.09 17.92,3 17.66,3M14.06,6.19L3,17.25V21H6.75L17.81,9.94L14.06,6.19Z" /></svg>
+                    </button>
+                    <button onclick="singleDeletePhoto('${photo._id}'); event.stopPropagation();" class="icon-btn delete" title="刪除">
+                        <svg viewBox="0 0 24 24"><path d="M9,3V4H4V6H5V19C5,20.1 5.9,21 7,21H17C18.1,21 19,20.1 19,19V6H20V4H15V3H9M7,6H17V19H7V6M9,8V17H11V8H9M13,8V17H15V8H13Z" /></svg>
+                    </button>
+                    <button onclick="showMovePhotoModal(false, '${photo._id}', '${photo.originalFileName}'); event.stopPropagation();" class="icon-btn move" title="移動">
+                        <svg viewBox="0 0 24 24"><path d="M20,11V13H8L13.5,18.5L12.08,19.92L4.16,12L12.08,4.08L13.5,5.5L8,11H20Z" /></svg>
+                    </button>
                 </div>
             `;
+            // ⭐ END: 替換區塊 ⭐
             grid.appendChild(card);
         });
         
