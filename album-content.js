@@ -252,32 +252,45 @@ function showRenamePhotoModal(id, oldName) {
     document.getElementById('renamePhotoModal').style.display = 'block';
 }
 
-// --- 執行重新命名邏輯 (最終修正：移除失敗時的 loadAlbumContent 呼叫) ---
+// --- 執行重新命名邏輯 (最終檢查與紀錄) ---
 
 async function executeRenamePhoto() {
     const id = document.getElementById('renamePhotoId').value;
     const newNameWithoutExt = document.getElementById('newPhotoNameInput').value.trim();
     const currentName = document.getElementById('currentPhotoNameDisplay').textContent;
     const lastDotIndex = currentName.lastIndexOf('.');
-    // 獲取原始副檔名 (例如 .jpg)，如果沒有副檔名則為空字串
     const ext = lastDotIndex === -1 ? '' : currentName.substring(lastDotIndex);
     
     if (!newNameWithoutExt) return showMessage('error', '新名稱不可為空');
 
     const newName = newNameWithoutExt + ext; // 重新組合完整檔名
+    const requestBody = JSON.stringify({ photoId: id, newFileName: newName });
     
-    // 關閉 Modal
     document.getElementById('renamePhotoModal').style.display = 'none';
 
     try {
+        // ⭐ 步驟 1: 記錄將傳遞給後端的資料
+        console.log("Renaming Photo Request:", { url: `${BACKEND_URL}/api/photos/rename`, body: requestBody });
+        
         const res = await fetch(`${BACKEND_URL}/api/photos/rename`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ photoId: id, newFileName: newName }) 
+            body: requestBody 
         });
 
         if (res.ok) {
-            // ✅ 成功邏輯：更新前端 UI (保持不變)
+            // ⭐ 步驟 2: 嘗試解析回應，確保它不是空內容
+            const responseText = await res.text();
+            let responseData = {};
+            try {
+                responseData = responseText ? JSON.parse(responseText) : { success: true };
+            } catch (e) {
+                console.error("API 回應解析失敗，但狀態碼為 200/201:", responseText);
+                showMessage('error', '❌ 重新命名失敗！ (API 回應內容無法解析或為空)。請檢查控制台。');
+                return; // 終止執行，避免進入成功邏輯
+            }
+            
+            // ✅ 成功邏輯：如果能正確解析，則認為成功
             showMessage('success', `✅ 成功將留影重新命名為 ${newName}`);
             
             // 1. 更新 allPhotos 陣列 (本地數據)
@@ -288,7 +301,6 @@ async function executeRenamePhoto() {
                     document.getElementById('imageCaption').textContent = newName;
                 }
             }
-
             // 2. 更新 DOM 元素 (照片卡片上的檔名)
             const photoCard = document.querySelector(`.photo-card[data-photo-id="${id}"]`);
             if (photoCard) {
@@ -298,27 +310,26 @@ async function executeRenamePhoto() {
                     filenameSpan.title = newName;
                 }
             }
-            
             localStorage.setItem('albums_data_changed', 'true'); 
             
         } else {
             // ❌ 失敗邏輯：捕捉伺服器錯誤細節，不重載頁面
-            const errorData = await res.json().catch(() => ({ message: res.statusText || 'API 回應格式錯誤或內容為空' }));
-            
-            // ⭐ 記錄詳細錯誤到控制台
-            console.error('重新命名 API 失敗 (Response Details):', res.status, errorData);
+            const errorText = await res.text(); // 獲取原始錯誤內容
+            let errorData = { message: errorText || 'API 回應內容為空' };
+            try {
+                errorData = JSON.parse(errorText);
+            } catch (e) {
+                // 如果不是 JSON，則使用原始文字
+            }
 
-            // ⭐ 顯示更詳細、停留 8 秒的錯誤訊息
+            console.error('重新命名 API 失敗 (Response Details):', res.status, errorData);
             showMessage('error', `❌ 重新命名失敗！ (狀態碼: ${res.status}, 伺服器訊息: ${errorData.message || '無'})。請檢查瀏覽器控制台 (F12) 獲取詳細資訊。`);
-            
-            // ⚠️ 關鍵：移除 loadAlbumContent(); 呼叫
         }
         
     } catch (e) {
         // ❌ 網路連線錯誤
         console.error("網路/JSON 解析錯誤：", e);
         showMessage('error', `❌ 網路連線錯誤或資料處理失敗。請檢查網路或控制台 (F12) 獲取詳細資訊。`);
-        // ⚠️ 關鍵：移除 loadAlbumContent(); 呼叫
     }
 }
 
