@@ -264,8 +264,9 @@ async function executeRenamePhoto() {
     if (!newNameWithoutExt) return showMessage('error', '新名稱不可為空');
 
     const newName = newNameWithoutExt + ext; 
-// ⭐ 嘗試使用 fileName
-const requestBody = JSON.stringify({ photoId: id, fileName: newName }); 
+// ⭐ 嘗試使用 name 並加上 albumId
+const albumId = currentAlbumId; // 確保這個變數是可用的
+const requestBody = JSON.stringify({ photoId: id, name: newName, albumId: albumId });
     document.getElementById('renamePhotoModal').style.display = 'none';
 
     try {
