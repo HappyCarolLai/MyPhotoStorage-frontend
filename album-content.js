@@ -263,8 +263,9 @@ async function executeRenamePhoto() {
     
     if (!newNameWithoutExt) return showMessage('error', '新名稱不可為空');
 
-    const newName = newNameWithoutExt + ext; // 💡 正確的寫法：匹配相簿重新命名 API 的鍵值 'name'
-const requestBody = JSON.stringify({ photoId: id, name: newName });  
+    const newName = newNameWithoutExt + ext; 
+// ⭐ 嘗試使用 fileName
+const requestBody = JSON.stringify({ photoId: id, fileName: newName }); 
     document.getElementById('renamePhotoModal').style.display = 'none';
 
     try {
