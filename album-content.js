@@ -241,13 +241,15 @@ function showRenamePhotoModal(id, oldName) {
     document.getElementById('renamePhotoModal').style.display = 'block';
 }
 
-// --- 執行重新命名邏輯 ---
+// --- 執行重新命名邏輯 (優化版：更新本地數據和單一卡片) ---
 
 async function executeRenamePhoto() {
     const id = document.getElementById('renamePhotoId').value;
     const newNameWithoutExt = document.getElementById('newPhotoNameInput').value.trim();
     const currentName = document.getElementById('currentPhotoNameDisplay').textContent;
-    const ext = currentName.substring(currentName.lastIndexOf('.')); // 獲取原始副檔名 (例如 .jpg)
+    const lastDotIndex = currentName.lastIndexOf('.');
+    // 獲取原始副檔名 (例如 .jpg)，如果沒有副檔名則為空字串
+    const ext = lastDotIndex === -1 ? '' : currentName.substring(lastDotIndex);
     
     if (!newNameWithoutExt) return showMessage('error', '新名稱不可為空');
 
@@ -263,15 +265,44 @@ async function executeRenamePhoto() {
         });
 
         if (res.ok) {
-            showMessage('success', `✅ 成功將照片重新命名為 ${newName}`);
+            showMessage('success', `✅ 成功將留影重新命名為 ${newName}`);
+            
+            // ⭐ 優化：只更新前端狀態和單個 DOM 元素，不重新載入整個相簿
+            
+            // 1. 更新 allPhotos 陣列 (本地數據)
+            const photoIndex = allPhotos.findIndex(p => p._id === id);
+            if (photoIndex !== -1) {
+                allPhotos[photoIndex].originalFileName = newName;
+                // 由於檔名變動可能影響燈箱，如果燈箱打開，確保它會顯示新名稱
+                if (document.getElementById('lightbox').style.display === 'flex' && currentPhotoIndex === photoIndex) {
+                    document.getElementById('imageCaption').textContent = newName;
+                }
+            }
+
+            // 2. 更新 DOM 元素 (照片卡片上的檔名)
+            const photoCard = document.querySelector(`.photo-card[data-photo-id="${id}"]`);
+            if (photoCard) {
+                const filenameSpan = photoCard.querySelector('.photo-filename');
+                if (filenameSpan) {
+                    filenameSpan.textContent = newName;
+                    filenameSpan.title = newName;
+                }
+            }
+            
+            // 由於重新命名會觸發主頁面相簿預覽圖更新，通知主頁面更新
+            localStorage.setItem('albums_data_changed', 'true'); 
+
         } else {
-            showMessage('error', '重新命名失敗');
+            // 處理 API 錯誤回傳
+            const errorData = await res.json().catch(() => ({ message: res.statusText || '未知錯誤' }));
+            showMessage('error', `重新命名失敗: ${errorData.message || '請檢查後端服務'}`);
+            loadAlbumContent(); // 重新載入以恢復原始狀態
         }
         
-        loadAlbumContent(); // 重新載入相簿內容以顯示新名稱
     } catch (e) {
+        console.error("重新命名發生錯誤：", e);
         showMessage('error', '網路錯誤，重新命名失敗');
-        loadAlbumContent();
+        loadAlbumContent(); // 重新載入以恢復原始狀態
     }
 }
 
