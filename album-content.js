@@ -35,11 +35,12 @@ async function loadAlbumContent() {
     currentAlbumId = id;
     
     const grid = document.getElementById('photoGrid');
-    // 優先顯示載入中
-    grid.innerHTML = '<p>載入中...</p>';
+    const noPhotosMessage = document.getElementById('noPhotosMessage'); // 取得元素
     
-    // 確保清空「沒有照片」的訊息 (初始狀態)
-    document.getElementById('noPhotosMessage').style.display = 'none';
+    // ⭐ 修正 1：優先顯示載入狀態
+    grid.innerHTML = '<p>載入中...</p>';
+    // ⭐ 修正 2：確保清空「沒有留影」的訊息 (重置狀態)
+    noPhotosMessage.style.display = 'none';
 
     try {
         const res = await fetch(`${BACKEND_URL}/api/albums/${id}/photos`);
@@ -52,14 +53,17 @@ async function loadAlbumContent() {
         
         const photos = await res.json();
         allPhotos = photos;
-        grid.innerHTML = '';
+        
+        // ⭐ 修正 3：成功拿到資料後，立即清除載入訊息
+        grid.innerHTML = ''; 
+        
         selectedPhotoIds.clear();
         document.getElementById('bulkActions').style.display = 'none';
 
-        // ⭐ 關鍵修正：檢查陣列是否為空
+        // 檢查陣列是否為空
         if (photos.length === 0) {
             // 相簿為空時，顯示「沒有留影」的訊息
-            document.getElementById('noPhotosMessage').style.display = 'block';
+            noPhotosMessage.style.display = 'block';
             return; // 結束函數執行
         }
 
@@ -72,9 +76,10 @@ async function loadAlbumContent() {
             let mediaHtml = '';
             if (isVideo(photo.originalFileName)) {
                 // 顯示影片標籤，preload metadata 讓瀏覽器抓縮圖
+                // 加入 poster 屬性避免影片完全空白
                 mediaHtml = `
                     <div class="video-indicator">▶</div>
-                    <video src="${photo.githubUrl}#t=0.1" preload="metadata"></video>
+                    <video src="${photo.githubUrl}#t=0.1" preload="metadata" poster="data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw=="></video>
                 `;
             } else {
                 mediaHtml = `<img src="${photo.githubUrl}" alt="photo">`;
@@ -94,9 +99,10 @@ async function loadAlbumContent() {
         });
         
     } catch (e) {
-        // ⭐️ 修正：在發生網路錯誤或非 200 狀態碼時，顯示錯誤訊息
+        // ⭐️ 修正 4：確保錯誤訊息能覆蓋「載入中」
         console.error("載入相簿內容時發生錯誤：", e);
-        grid.innerHTML = '<p class="error-text">載入失敗，請檢查網路或後端服務。</p>'; // 顯示明確的錯誤訊息
+        grid.innerHTML = '<p class="error-text">❌ 載入失敗，請檢查網路或後端服務。</p>'; // 顯示明確的錯誤訊息
+        noPhotosMessage.style.display = 'none'; // 隱藏無照片提示
     }
 }
 
