@@ -252,7 +252,7 @@ function showRenamePhotoModal(id, oldName) {
     document.getElementById('renamePhotoModal').style.display = 'block';
 }
 
-// --- 執行重新命名邏輯 (最終檢查與紀錄) ---
+// --- 執行重新命名邏輯 (最終版本：成功後強制重新載入) ---
 
 async function executeRenamePhoto() {
     const id = document.getElementById('renamePhotoId').value;
@@ -269,7 +269,6 @@ async function executeRenamePhoto() {
     document.getElementById('renamePhotoModal').style.display = 'none';
 
     try {
-        // ⭐ 步驟 1: 記錄將傳遞給後端的資料
         console.log("Renaming Photo Request:", { url: `${BACKEND_URL}/api/photos/rename`, body: requestBody });
         
         const res = await fetch(`${BACKEND_URL}/api/photos/rename`, {
@@ -279,42 +278,16 @@ async function executeRenamePhoto() {
         });
 
         if (res.ok) {
-            // ⭐ 步驟 2: 嘗試解析回應，確保它不是空內容
-            const responseText = await res.text();
-            let responseData = {};
-            try {
-                responseData = responseText ? JSON.parse(responseText) : { success: true };
-            } catch (e) {
-                console.error("API 回應解析失敗，但狀態碼為 200/201:", responseText);
-                showMessage('error', '❌ 重新命名失敗！ (API 回應內容無法解析或為空)。請檢查控制台。');
-                return; // 終止執行，避免進入成功邏輯
-            }
+            // ✅ 成功邏輯：收到 200 狀態碼，執行強制重新載入以確認伺服器變更
+            showMessage('success', `✅ 重新命名請求已送出，頁面將重新載入以確認變更...`);
             
-            // ✅ 成功邏輯：如果能正確解析，則認為成功
-            showMessage('success', `✅ 成功將留影重新命名為 ${newName}`);
-            
-            // 1. 更新 allPhotos 陣列 (本地數據)
-            const photoIndex = allPhotos.findIndex(p => p._id === id);
-            if (photoIndex !== -1) {
-                allPhotos[photoIndex].originalFileName = newName;
-                if (document.getElementById('lightbox').style.display === 'flex' && currentPhotoIndex === photoIndex) {
-                    document.getElementById('imageCaption').textContent = newName;
-                }
-            }
-            // 2. 更新 DOM 元素 (照片卡片上的檔名)
-            const photoCard = document.querySelector(`.photo-card[data-photo-id="${id}"]`);
-            if (photoCard) {
-                const filenameSpan = photoCard.querySelector('.photo-filename');
-                if (filenameSpan) {
-                    filenameSpan.textContent = newName;
-                    filenameSpan.title = newName;
-                }
-            }
             localStorage.setItem('albums_data_changed', 'true'); 
+            // ⭐ 關鍵：強制重新載入，確認伺服器端的檔名是否已更新
+            window.location.reload(); 
             
         } else {
-            // ❌ 失敗邏輯：捕捉伺服器錯誤細節，不重載頁面
-            const errorText = await res.text(); // 獲取原始錯誤內容
+            // ❌ 失敗邏輯：捕捉伺服器錯誤細節
+            const errorText = await res.text();
             let errorData = { message: errorText || 'API 回應內容為空' };
             try {
                 errorData = JSON.parse(errorText);
