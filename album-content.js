@@ -35,22 +35,35 @@ async function loadAlbumContent() {
     currentAlbumId = id;
     
     const grid = document.getElementById('photoGrid');
+    // 優先顯示載入中
     grid.innerHTML = '<p>載入中...</p>';
     
+    // 確保清空「沒有照片」的訊息 (初始狀態)
+    document.getElementById('noPhotosMessage').style.display = 'none';
+
     try {
         const res = await fetch(`${BACKEND_URL}/api/albums/${id}/photos`);
-        if (!res.ok) throw new Error('Failed');
+        
+        // 檢查 HTTP 狀態碼是否成功
+        if (!res.ok) {
+            // 如果 API 呼叫失敗，拋出錯誤給 catch 區塊處理
+            throw new Error(`API 載入失敗 (狀態碼: ${res.status})`);
+        }
+        
         const photos = await res.json();
         allPhotos = photos;
         grid.innerHTML = '';
         selectedPhotoIds.clear();
         document.getElementById('bulkActions').style.display = 'none';
 
+        // ⭐ 關鍵修正：檢查陣列是否為空
         if (photos.length === 0) {
+            // 相簿為空時，顯示「沒有留影」的訊息
             document.getElementById('noPhotosMessage').style.display = 'block';
-            return;
+            return; // 結束函數執行
         }
 
+        // 渲染照片/影片網格
         photos.forEach((photo, index) => {
             const card = document.createElement('div');
             card.className = 'photo-card';
@@ -79,9 +92,11 @@ async function loadAlbumContent() {
             `;
             grid.appendChild(card);
         });
+        
     } catch (e) {
-        console.error(e);
-        grid.innerHTML = '<p>載入失敗</p>';
+        // ⭐️ 修正：在發生網路錯誤或非 200 狀態碼時，顯示錯誤訊息
+        console.error("載入相簿內容時發生錯誤：", e);
+        grid.innerHTML = '<p class="error-text">載入失敗，請檢查網路或後端服務。</p>'; // 顯示明確的錯誤訊息
     }
 }
 
