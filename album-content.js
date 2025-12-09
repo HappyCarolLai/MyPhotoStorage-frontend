@@ -252,7 +252,7 @@ function showRenamePhotoModal(id, oldName) {
     document.getElementById('renamePhotoModal').style.display = 'block';
 }
 
-// --- 執行重新命名邏輯 (最終版本：成功後強制重新載入) ---
+// --- 執行重新命名邏輯 (最終修正：使用 'name' 鍵值) ---
 
 async function executeRenamePhoto() {
     const id = document.getElementById('renamePhotoId').value;
@@ -263,9 +263,8 @@ async function executeRenamePhoto() {
     
     if (!newNameWithoutExt) return showMessage('error', '新名稱不可為空');
 
-    const newName = newNameWithoutExt + ext; // 重新組合完整檔名
-    const requestBody = JSON.stringify({ photoId: id, newFileName: newName });
-    
+    const newName = newNameWithoutExt + ext; // 💡 正確的寫法：匹配相簿重新命名 API 的鍵值 'name'
+const requestBody = JSON.stringify({ photoId: id, name: newName });  
     document.getElementById('renamePhotoModal').style.display = 'none';
 
     try {
