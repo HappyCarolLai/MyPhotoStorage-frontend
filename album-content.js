@@ -292,10 +292,16 @@ async function executeMovePhoto() {
     if (isBulkMove) {
         photoIdsToMove = Array.from(selectedPhotoIds);
     } else {
-        photoIdsToMove = [document.getElementById('confirmMovePhoto').dataset.singleId];
+        // 確保單張移動時的 ID 來源正確
+        const singleId = document.getElementById('confirmMovePhoto').dataset.singleId;
+        if (!singleId) return showMessage('error', '單張移動 ID 遺失');
+        photoIdsToMove = [singleId];
     }
     
     if (photoIdsToMove.length === 0) return;
+
+    // 關閉 Modal
+    document.getElementById('movePhotoModal').style.display = 'none';
 
     try {
         const res = await fetch(`${BACKEND_URL}/api/photos/bulkMove`, {
@@ -303,20 +309,33 @@ async function executeMovePhoto() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ 
                 photoIds: photoIdsToMove, 
-                targetAlbumId: targetAlbumId 
+                targetAlbumId: targetAlbumId // 確保是 targetAlbumId
             })
         });
-
+        
+        // 檢查回應是否成功
         if (res.ok) {
-            showMessage('success', `✅ 成功移動 ${photoIdsToMove.length} 張留影！`);
+            showMessage('success', `✅ 成功移動 ${photoIdsToMove.length} 張留影！頁面將自動重新整理...`);
+            
+            // ⭐ 關鍵修正 1: 通知主頁面更新
+            localStorage.setItem('albums_data_changed', 'true'); 
+            
+            // ⭐ 關鍵修正 2: 執行強制頁面重新載入
+            window.location.reload(); 
+            
         } else {
-            showMessage('error', '移動失敗');
+            // 讀取 API 回傳的錯誤訊息
+            const errorData = await res.json().catch(() => ({ message: res.statusText || '未知錯誤' }));
+            console.error('移動失敗詳情:', errorData);
+            showMessage('error', `移動失敗 (錯誤碼: ${res.status}，請檢查控制台)`);
+            // 失敗後，嘗試重新載入相簿內容，以便使用者可以繼續操作
+            loadAlbumContent();
         }
 
-        document.getElementById('movePhotoModal').style.display = 'none';
-        loadAlbumContent(); // 重新載入相簿內容
     } catch (e) {
+        console.error('網路錯誤，移動失敗', e);
         showMessage('error', '網路錯誤，移動失敗');
+        loadAlbumContent(); // 網路錯誤也嘗試重新載入
     }
 }
 
