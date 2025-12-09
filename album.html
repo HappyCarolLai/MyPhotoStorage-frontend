@@ -21,11 +21,20 @@
             <div class="action-bar" style="display: flex; align-items: center; border-bottom: 1px solid #E9ECEF; padding-bottom: 10px; margin-bottom: 20px;">
                 <h2 id="currentAlbumName" style="border: none; margin: 0; padding: 0;">相簿內容</h2>
                 
-                <div id="bulkActions" style="display: none; margin-left: auto; align-items: center; gap: 10px;">
-                    <span id="selectedCount" style="font-weight: bold; color: #666;">已選取 0 張</span>
-                    <button id="bulkMoveBtn" class="btn-primary" onclick="showMovePhotoModal(true)">批量移動</button>
-                    <button id="bulkDeleteBtn" class="btn-primary" style="background-color: #666;" onclick="bulkDeletePhotos()">批量刪除</button>
-                </div>
+<div id="bulkActions" style="display: none;">
+                <span id="selectedCount" style="margin-right: 15px;">已選 0 張</span>
+                <button onclick="toggleSelectAll()" class="btn-secondary" style="margin-right: 10px;">
+                    全選 / 取消
+                </button>
+                <button onclick="bulkDeletePhotos()" class="btn-danger">
+                    <svg viewBox="0 0 24 24" style="width:18px; height:18px; fill:white; margin-right: 5px;"><path d="M9,3V4H4V6H5V19C5,20.1 5.9,21 7,21H17C18.1,21 19,20.1 19,19V6H20V4H15V3H9M7,6H17V19H7V6M9,8V17H11V8H9M13,8V17H15V8H13Z" /></svg>
+                    批量刪除
+                </button>
+                <button onclick="showMovePhotoModal(true)" class="btn-primary">
+                    <svg viewBox="0 0 24 24" style="width:18px; height:18px; fill:white; margin-right: 5px;"><path d="M14.2 18H11.8L12.98 16.82L10.58 14.42L11.77 13.23L14.17 15.63L15.35 14.45L14.17 13.27L17.7 9.77C18.4 9.07 18.4 7.9 17.7 7.2L16.8 6.3C16.1 5.6 14.93 5.6 14.23 6.3L10.73 9.8L9.5 8.57L7.1 10.97L8.27 12.14L5 15.41L6.17 16.58L9.44 13.31L10.6 14.47L8.2 16.87L9.4 18.06L11.8 15.66L12.98 16.84L10.58 19.24L11.77 20.43L14.17 18.03L15.35 19.21L12.98 21.58L14.2 23H20V17.7Z"/></svg>
+                    批量移動
+                </button>
+            </div>
             </div>
             
             <div id="photoGrid" class="photo-grid"> 
@@ -40,7 +49,6 @@
         <span class="close" onclick="document.getElementById('movePhotoModal').style.display='none'">&times;</span>
         <h3>移動留影</h3>
         <p id="movePhotoMessage">將 <span id="photoToMoveName" style="font-weight: bold;"></span> 移動到：</p>
-        <input type="hidden" id="singleMovePhotoId"> 
         <select id="targetMoveAlbumSelect" style="width: 100%; margin: 10px 0; padding: 8px; border-radius: 6px; border: 1px solid #ccc;"></select>
         <div class="modal-actions" style="margin-top: 20px; text-align: right;">
             <button class="icon-btn" onclick="document.getElementById('movePhotoModal').style.display='none'" style="font-size: 1rem; margin-right: 10px;">取消</button>
@@ -48,6 +56,21 @@
         </div>
     </div>
 </div>
+
+<div id="renamePhotoModal" class="modal">
+            <div class="modal-content" style="max-width: 400px;">
+                <span class="close" onclick="document.getElementById('renamePhotoModal').style.display='none'">&times;</span>
+                <h3>重新命名照片</h3>
+                <p>目前檔名: <span id="currentPhotoNameDisplay" style="font-weight: bold;"></span></p>
+                <input type="hidden" id="renamePhotoId">
+                <label for="newPhotoNameInput">新檔名 (不含副檔名):</label>
+                <input type="text" id="newPhotoNameInput" style="width: 100%; margin: 10px 0; padding: 8px; border-radius: 6px; border: 1px solid #ccc;">
+                <div class="modal-actions" style="margin-top: 20px; text-align: right;">
+                    <button class="icon-btn" onclick="document.getElementById('renamePhotoModal').style.display='none'" style="font-size: 1rem; margin-right: 10px;">取消</button>
+                    <button id="confirmRenamePhoto" onclick="executeRenamePhoto()" class="btn-primary">確認命名</button>
+                </div>
+            </div>
+        </div>
         
         <div id="lightbox" class="modal" style="display: none;">
             <span class="close" onclick="closeLightbox()">&times;</span>

@@ -180,10 +180,21 @@ function handleKeyNavigation(e) {
 
 // --- 選取與刪除邏輯 ---
 
-function handleSelectionClick(e, id) {
+function handleSelectionClick(e, id, name) {
     e.stopPropagation();
-    if (e.target.checked) selectedPhotoIds.add(id);
-    else selectedPhotoIds.delete(id);
+    
+    let currentSelections = Array.from(selectedPhotoIds); // 將 Set 轉換成可操作的陣列
+
+    if (e.target.checked) {
+        // 新增：確保 ID 和 NAME 的組合是唯一的
+        currentSelections.push({ id, name }); 
+    } else {
+        // 移除：使用 filter 找到並移除對應 ID 的物件
+        currentSelections = currentSelections.filter(item => item.id !== id);
+    }
+    
+    // 重新賦值給 Set
+    selectedPhotoIds = new Set(currentSelections);
     
     const bulkDiv = document.getElementById('bulkActions');
     if (selectedPhotoIds.size > 0) {
@@ -194,16 +205,92 @@ function handleSelectionClick(e, id) {
     }
 }
 
+// --- 全選按鈕邏輯 ---
+
+// --- 全選按鈕邏輯 ---
+
+function toggleSelectAll() {
+    const isAllSelected = selectedPhotoIds.size === allPhotos.length;
+    selectedPhotoIds.clear();
+    const checkboxes = document.querySelectorAll('.photo-select-checkbox');
+    
+    checkboxes.forEach((checkbox, index) => {
+        checkbox.checked = !isAllSelected; // 根據當前狀態切換
+        if (!isAllSelected) {
+            const photo = allPhotos[index];
+            // ⭐ 修正：儲存物件 { id, name }
+            selectedPhotoIds.add({ id: photo._id, name: photo.originalFileName });
+        }
+    });
+
+    const bulkDiv = document.getElementById('bulkActions');
+    if (selectedPhotoIds.size > 0) {
+        bulkDiv.style.display = 'flex';
+        document.getElementById('selectedCount').textContent = `已選 ${selectedPhotoIds.size} 張`;
+    } else {
+        bulkDiv.style.display = 'none';
+    }
+}
+
+// --- 單張重新命名 Modal ---
+
+function showRenamePhotoModal(id, oldName) {
+    document.getElementById('renamePhotoId').value = id;
+    document.getElementById('currentPhotoNameDisplay').textContent = oldName;
+    document.getElementById('newPhotoNameInput').value = oldName.substring(0, oldName.lastIndexOf('.')); // 預設去除副檔名
+    document.getElementById('renamePhotoModal').style.display = 'block';
+}
+
+// --- 執行重新命名邏輯 ---
+
+async function executeRenamePhoto() {
+    const id = document.getElementById('renamePhotoId').value;
+    const newNameWithoutExt = document.getElementById('newPhotoNameInput').value.trim();
+    const currentName = document.getElementById('currentPhotoNameDisplay').textContent;
+    const ext = currentName.substring(currentName.lastIndexOf('.')); // 獲取原始副檔名 (例如 .jpg)
+    
+    if (!newNameWithoutExt) return showMessage('error', '新名稱不可為空');
+
+    const newName = newNameWithoutExt + ext; // 重新組合完整檔名
+    
+    document.getElementById('renamePhotoModal').style.display = 'none';
+
+    try {
+        const res = await fetch(`${BACKEND_URL}/api/photos/rename`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ photoId: id, newFileName: newName }) 
+        });
+
+        if (res.ok) {
+            showMessage('success', `✅ 成功將照片重新命名為 ${newName}`);
+        } else {
+            showMessage('error', '重新命名失敗');
+        }
+        
+        loadAlbumContent(); // 重新載入相簿內容以顯示新名稱
+    } catch (e) {
+        showMessage('error', '網路錯誤，重新命名失敗');
+        loadAlbumContent();
+    }
+}
+
+// --- 執行批量刪除 (修正 ID 提取) ---
+
 async function bulkDeletePhotos() {
     if (!confirm(`確定要刪除這 ${selectedPhotoIds.size} 張留影嗎？`)) return;
+    
+    // ⭐ 修正：從 Set 中的物件提取 ID
+    const photoIdsToDelete = Array.from(selectedPhotoIds).map(item => item.id);
+    
     try {
         await fetch(`${BACKEND_URL}/api/photos/bulkDelete`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ photoIds: Array.from(selectedPhotoIds) })
+            body: JSON.stringify({ photoIds: photoIdsToDelete })
         });
-        showMessage('success', `✅ 成功刪除 ${selectedPhotoIds.size} 張留影。`);
-        loadAlbumContent(); // 重新載入相簿
+        showMessage('success', `✅ 成功刪除 ${photoIdsToDelete.length} 張留影。`);
+        loadAlbumContent(); 
     } catch (e) {
         showMessage('error', '刪除失敗');
     }
@@ -294,9 +381,9 @@ async function executeMovePhoto() {
 
     let photoIdsToMove = [];
     if (isBulkMove) {
-        photoIdsToMove = Array.from(selectedPhotoIds);
+        // ⭐ 修正：從 Set 中的物件提取 ID
+        photoIdsToMove = Array.from(selectedPhotoIds).map(item => item.id);
     } else {
-        // 確保單張移動時的 ID 來源正確
         const singleId = document.getElementById('confirmMovePhoto').dataset.singleId;
         if (!singleId) return showMessage('error', '單張移動 ID 遺失');
         photoIdsToMove = [singleId];
