@@ -35,53 +35,56 @@ async function loadAlbumContent() {
     currentAlbumId = id;
     
     const grid = document.getElementById('photoGrid');
-    const noPhotosMessage = document.getElementById('noPhotosMessage'); // 取得元素
+    const noPhotosMessage = document.getElementById('noPhotosMessage'); 
     
-    // ⭐ 修正 1：優先顯示載入狀態
+    // 步驟 1: 設置載入狀態並重置訊息
     grid.innerHTML = '<p>載入中...</p>';
-    // ⭐ 修正 2：確保清空「沒有留影」的訊息 (重置狀態)
-    noPhotosMessage.style.display = 'none';
+    if (noPhotosMessage) {
+        noPhotosMessage.style.display = 'none';
+    }
 
     try {
         const res = await fetch(`${BACKEND_URL}/api/albums/${id}/photos`);
         
-        // 檢查 HTTP 狀態碼是否成功
         if (!res.ok) {
-            // 如果 API 呼叫失敗，拋出錯誤給 catch 區塊處理
             throw new Error(`API 載入失敗 (狀態碼: ${res.status})`);
         }
         
         const photos = await res.json();
         allPhotos = photos;
         
-        // ⭐ 修正 3：成功拿到資料後，立即清除載入訊息
+        // 步驟 2: 成功取得資料，清除載入中狀態
         grid.innerHTML = ''; 
         
         selectedPhotoIds.clear();
         document.getElementById('bulkActions').style.display = 'none';
 
-        // 檢查陣列是否為空
+        // 步驟 3: 檢查相簿是否為空
         if (photos.length === 0) {
-            // 相簿為空時，顯示「沒有留影」的訊息
-            noPhotosMessage.style.display = 'block';
-            return; // 結束函數執行
+            if (noPhotosMessage) {
+                 noPhotosMessage.style.display = 'block';
+            } else {
+                 grid.innerHTML = '<p style="color: #6C757D; text-align: center; margin-top: 50px; font-size: 1.1rem;">此相簿目前沒有留影</p>';
+            }
+            return; 
         }
 
-        // 渲染照片/影片網格
+        // 步驟 4: 渲染照片/影片網格
         photos.forEach((photo, index) => {
             const card = document.createElement('div');
             card.className = 'photo-card';
-            
+            card.setAttribute('data-photo-id', photo._id); // 新增屬性便於查找
+
             // 判斷顯示圖片或影片
             let mediaHtml = '';
             if (isVideo(photo.originalFileName)) {
-                // 顯示影片標籤，preload metadata 讓瀏覽器抓縮圖
-                // 加入 poster 屬性避免影片完全空白
+                // 影片縮圖處理：使用 video 標籤，並指定時間點抓取畫面
                 mediaHtml = `
                     <div class="video-indicator">▶</div>
                     <video src="${photo.githubUrl}#t=0.1" preload="metadata" poster="data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw=="></video>
                 `;
             } else {
+                // 圖片
                 mediaHtml = `<img src="${photo.githubUrl}" alt="photo">`;
             }
 
@@ -99,10 +102,12 @@ async function loadAlbumContent() {
         });
         
     } catch (e) {
-        // ⭐️ 修正 4：確保錯誤訊息能覆蓋「載入中」
+        // 步驟 5: 處理錯誤
         console.error("載入相簿內容時發生錯誤：", e);
-        grid.innerHTML = '<p class="error-text">❌ 載入失敗，請檢查網路或後端服務。</p>'; // 顯示明確的錯誤訊息
-        noPhotosMessage.style.display = 'none'; // 隱藏無照片提示
+        grid.innerHTML = '<p class="error-text">❌ 載入失敗，請檢查網路或後端服務。</p>'; 
+        if (noPhotosMessage) {
+            noPhotosMessage.style.display = 'none';
+        }
     }
 }
 
