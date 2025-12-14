@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>上傳留影</title>
-    <link rel="icon" type="image/webp" href="Logo-2_32x32.webp">
-    <link rel="apple-touch-icon" href="Logo-2_180x180.webp">
+    <link rel="icon" type="image/webp" href="images/Logo-2_32x32.webp">
+    <link rel="apple-touch-icon" href="images/Logo-2_180x180.webp">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -20,8 +20,6 @@
             </div>
             <span id="progressText" style="font-size: 0.8rem; display: block; margin-top: 5px;">0%</span>
         </div>
-
-        <div class="upload-header-bar">
         
         <div class="upload-header-bar">
             <button onclick="window.location.href='index.html'" class="icon-btn" title="返回留影簿列表">
@@ -55,6 +53,11 @@
 
     </div>
 
-    <script type="module" src="upload.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.10/dist/umd/ffmpeg.js"></script> 
+    
+    <script type="module" src="ffmpeg-loader.js"></script> 
+    
+    <script type="module" src="upload.js"></script> 
+</body>
 </body>
 </html>
