@@ -12,6 +12,16 @@
     <div class="container">
         
         <div id="message" class="message-box" style="display:none;"></div>
+
+        <div id="compressionProgress" class="message-box" style="display:none; background-color: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; padding: 10px; margin-bottom: 20px;">
+            <p style="margin: 0; font-weight: bold;">🎥 正在進行影片壓縮，請勿關閉視窗...</p>
+            <div id="progressBar" style="height: 10px; background-color: #E9ECEF; border-radius: 5px; margin-top: 5px;">
+                <div id="progressFill" style="height: 100%; width: 0%; background-color: #007bff; border-radius: 5px; transition: width 0.3s;"></div>
+            </div>
+            <span id="progressText" style="font-size: 0.8rem; display: block; margin-top: 5px;">0%</span>
+        </div>
+
+        <div class="upload-header-bar">
         
         <div class="upload-header-bar">
             <button onclick="window.location.href='index.html'" class="icon-btn" title="返回留影簿列表">
@@ -45,6 +55,6 @@
 
     </div>
 
-    <script src="upload.js"></script>
+    <script type="module" src="upload.js" defer></script>
 </body>
 </html>
