@@ -250,7 +250,7 @@ async function uploadPhoto() {
     formData.append('targetAlbumId', targetAlbumId); 
 
     try {
-        const res = await fetch(`${BACKEND_URL}/api/upload`, {
+        const res = await fetch(`${BACKEND_URL}/upload`, {
             method: 'POST',
             body: formData,
         });

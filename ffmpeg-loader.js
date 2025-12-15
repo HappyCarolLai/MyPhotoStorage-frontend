@@ -31,13 +31,15 @@ async function loadFfmpeg(FFmpegClass) {
 
     try {
         await ffmpeg.load({
-            // ⭐ 關鍵：只提供 coreURL 和 wasmURL，讓 FFmpeg 自動生成 Worker Blob
             coreURL: base + 'ffmpeg-core.js',
             wasmURL: base + 'ffmpeg-core.wasm',
+            // ⭐ 關鍵修正：必須顯式地指定 workerURL，解決 SecurityError
+            workerURL: base + 'ffmpeg-core.js', 
         });
         isFfmpegLoaded = true;
         window.showMessage('success', '✅ 影片處理核心載入完成！');
     } catch (e) {
+// ...
         console.error('FFmpeg 載入失敗:', e);
         window.showMessage('error', '❌ 影片處理核心載入失敗！請檢查控制台或網路。');
         throw e; // 拋出錯誤供 upload.js 捕獲
