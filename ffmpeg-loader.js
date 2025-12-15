@@ -1,7 +1,10 @@
 // ffmpeg-loader.js (新檔案)
 
 let ffmpeg = null;
-const base = './ffmpeg_static/';
+// ffmpeg-loader.js
+const base = '/ffmpeg_static/'; 
+// ❗注意：在 GitHub Pages 上，這會被解析為您的專案根目錄，例如：
+// https://<username>.github.io/<repo>/ffmpeg_static/
 let isFfmpegLoaded = false;
 
 /**
