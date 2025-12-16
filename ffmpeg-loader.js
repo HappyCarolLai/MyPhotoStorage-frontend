@@ -7,15 +7,16 @@ let isFfmpegLoaded = false;
 
 /**
  * 載入 FFmpeg 核心並設定進度回呼
- * @param {FFmpeg} FFmpegClass - 從 upload.js 傳入的 FFmpeg 類別構造函數 (window.FFmpegWASM.FFmpeg)
+ * @param {FFmpeg} FFmpegClass - 從 upload.js 傳入的 FFmpeg 類別構造函數
  */
 async function load(FFmpegClass) {
     if (isFfmpegLoaded) return ffmpeg;
     
-    // 1. 檢查並確保 FFmpegClass 是真正的構造函數 (Fallback 邏輯)
-    if (typeof FFmpegClass === 'undefined' || typeof FFmpegClass !== 'function') {
+    // 1. 修正類別提取：如果沒有傳入正確的類別，從模組物件中提取 (為防止回歸)
+    if (typeof FFmpegClass !== 'function' || typeof FFmpegClass === 'undefined') {
         if (window.FFmpegWASM && typeof window.FFmpegWASM.FFmpeg === 'function') {
-             FFmpegClass = window.FFmpegWASM.FFmpeg;
+             // 從模組物件中提取真正的類別構造函數
+             FFmpegClass = window.FFmpegWASM.FFmpeg; 
         }
         if (typeof FFmpegClass !== 'function') {
             const errorMsg = '❌ FFmpeg.js 函式庫尚未載入。';
@@ -32,7 +33,7 @@ async function load(FFmpegClass) {
         corePath: base // base = '/ffmpeg_static/'
     }); 
 
-    // 設定進度回呼 (保持不變)
+    // 設定進度回呼
     ffmpeg.on('progress', ({ progress, time }) => {
         const percentage = Math.round(progress);
         const progressFill = document.getElementById('progressFill');
@@ -44,8 +45,7 @@ async function load(FFmpegClass) {
     });
 
     try {
-        // 3. 簡化 load 呼叫
-        // 由於 corePath 已經在構造函數中設定，這裡不需要再傳入參數
+        // 3. 簡化 load 呼叫：因為 corePath 已經在構造函數中設定，這裡只需要呼叫 load()
         await ffmpeg.load(); 
         
         isFfmpegLoaded = true;
@@ -54,12 +54,14 @@ async function load(FFmpegClass) {
     } catch (e) {
         console.error('❌ FFmpeg 核心載入失敗:', e);
         window.showMessage('error', `❌ 影片核心載入失敗：${e.message}。`);
-        throw e;
+        throw new Error('FFmpeg 核心載入失敗');
     }
 }
 
-// 暴露 API (保持不變)
-function getFfmpeg() { return ffmpeg; }
-function getIsLoaded() { return isFfmpegLoaded; }
-
-window.FFMpegLoader = { load, getFfmpeg, getIsLoaded };
+// 暴露出全域變數供 upload.js 使用 
+window.FFMpegLoader = {
+    load: load, 
+    getIsLoaded: () => isFfmpegLoaded,
+    // 為了健壯性，也提供 getFfmpeg
+    getFfmpeg: () => ffmpeg
+};
