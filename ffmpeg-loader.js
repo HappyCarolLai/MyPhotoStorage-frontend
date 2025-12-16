@@ -1,9 +1,9 @@
-// ffmpeg-loader.js (最終絕對路徑和 Worker 類型修正)
+// ffmpeg-loader.js (最終 GitHub Pages 修正版)
 
 let ffmpeg = null;
-// ⭐ 關鍵修正 A：使用絕對路徑。這是 Web Worker 載入資源最可靠的方式。
-// 例如：https://yourdomain.com/ffmpeg_static/
-const base = window.location.origin + '/ffmpeg_static/'; 
+// ⭐ 關鍵修正 A：使用 URL API 嚴格計算出絕對路徑。
+// 即使頁面在子目錄中，也能保證計算出：https://happycarollai.github.io/MyPhotoStorage-frontend/ffmpeg_static/
+const base = new URL('ffmpeg_static/', window.location.href).href; 
 let isFfmpegLoaded = false;
 
 /**
@@ -27,13 +27,9 @@ async function load(FFmpegClass) {
     window.showMessage('info', '正在載入影片處理核心 (FFmpeg.wasm)，請稍候...');
 
     // ⭐ 關鍵修正 B：在構造函數中設定 corePath（必須為絕對路徑）
-    // 這確保 FFmpeg 內部邏輯使用正確的基礎路徑。
     ffmpeg = new FFmpegClass({ 
         corePath: base,
-        // ⭐ 新增修正 C：強制 Worker 使用 module 類型
-        // 有些環境要求 Worker 腳本作為 ES 模組載入
-        // 雖然 workerURL 指向 ffmpeg-core.js，但這個選項有時能解決底層的 Worker 創建問題
-        workerType: 'module' 
+        // (移除 workerType: 'module'，避免引入新的不兼容性)
     }); 
 
     // 設定進度回呼 (保持不變)
@@ -48,10 +44,12 @@ async function load(FFmpegClass) {
     });
 
     try {
-        // ⭐ 關鍵修正 D：在 load() 中明確指定 workerURL（這是強制載入的最後一步）
-        // 必須使用絕對路徑
+        // ⭐ 關鍵修正 C：在 load() 中同時指定 coreURL 和 workerURL，
+        // 這是因為 FFmpeg.wasm 在 Worker 啟動時，需要知道 workerURL 和 coreURL 的路徑，
+        // corePath 雖然設定了，但在某些環境下需要顯式指定，以覆蓋動態路徑解析。
         await ffmpeg.load({
-            workerURL: base + 'ffmpeg-core.js', 
+            coreURL: base + 'ffmpeg-core.js', // 絕對路徑
+            workerURL: base + 'ffmpeg-core.js', // 絕對路徑
         });
         
         isFfmpegLoaded = true;
