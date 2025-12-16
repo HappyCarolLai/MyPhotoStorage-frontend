@@ -198,50 +198,65 @@ function handleFiles(files) {
 // ----------------------------------------------------
 // 上傳照片函式 (修正核心邏輯)
 // ----------------------------------------------------
+
 async function uploadPhoto() {
     if (selectedFiles.length === 0) return;
-    // ... (設定按鈕狀態、targetAlbumId 等保持不變) ...
-
-    const filesToUpload = [];
-    const videoCount = selectedFiles.filter(f => f.type.startsWith('video/')).length;
-    let currentVideoIndex = 0;
-    
-    // 預先處理所有檔案
-    for (const file of selectedFiles) {
-        if (file.type.startsWith('video/')) {
-            // ⭐ 影片壓縮邏輯：使用 Loader 檢查狀態
-            if (window.FFMpegLoader && window.FFMpegLoader.getIsLoaded()) { 
-                currentVideoIndex++;
-                showMessage('info', `🎥 正在壓縮第 ${currentVideoIndex} / ${videoCount} 個影片...`);
-                try {
-                    const compressedFile = await compressVideo(file);
-                    filesToUpload.push(compressedFile);
-                } catch (e) {
-                    console.error(`跳過失敗的影片 ${file.name}`);
-                    continue; 
-                }
-            } else {
-                showMessage('error', '❌ FFmpeg 尚未載入！請稍候重試。');
-                filesToUpload.push(file); // 如果未載入，還是嘗試上傳原始檔案 (可能導致超時)
-            }
-        } else {
-            // ⭐ 圖片直接上傳，交給後端處理
-            filesToUpload.push(file);
-        }
-    }
 
     const btn = document.getElementById('uploadButton');
     const targetAlbumId = document.getElementById('targetAlbumSelect').value;
-    btn.disabled = true;
-    btn.innerHTML = '上傳中...';
-    
-    // 檢查是否有要上傳的檔案
-    if (filesToUpload.length === 0) {
-        showMessage('error', '沒有可上傳或壓縮成功的檔案！');
-        btn.disabled = false;
-        btn.innerHTML = `<svg viewBox="0 0 24 24" style="width:20px; height:20px; fill:white;"><path d="M9,16V10H5L12,3L19,10H15V16H9M5,20V18H19V20H5Z" /></svg> <span>上傳</span>`;
-        return;
+    btn.disabled = true; // 立即禁用按鈕
+
+    const filesToCompress = selectedFiles.filter(f => f.type.startsWith('video/'));
+
+    // ⭐ 修正 1：如果包含影片，則強制等待 FFmpeg 載入
+    if (filesToCompress.length > 0) {
+        // 使用 loadFfmpeg() 來確保核心載入
+        if (!window.FFMpegLoader || !window.FFMpegLoader.getIsLoaded()) {
+            btn.innerHTML = '正在準備影片核心...';
+
+            try {
+                // 必須使用 await 等待非同步載入完成
+                await loadFfmpeg(); 
+            } catch (e) {
+                // 載入失敗，中止流程
+                showMessage('error', '❌ 影片核心載入失敗，無法上傳影片！');
+                btn.disabled = false;
+                btn.innerHTML = `<svg viewBox="0 0 24 24" style="width:20px; height:20px; fill:white;"><path d="M9,16V10H5L12,3L19,10H15V16H9M5,20V18H19V20H5Z" /></svg> <span>上傳</span>`;
+                return; 
+            }
+        }
     }
+
+    // 核心準備就緒或無影片時，開始處理檔案
+    btn.innerHTML = '處理檔案中...'; 
+
+    const filesToUpload = [];
+    const videoCount = filesToCompress.length;
+    let currentVideoIndex = 0;
+
+    // 預先處理所有檔案
+    for (const file of selectedFiles) {
+        if (file.type.startsWith('video/')) {
+            // 現在核心已準備好，直接執行壓縮
+            currentVideoIndex++;
+            showMessage('info', `🎥 正在壓縮第 ${currentVideoIndex} / ${videoCount} 個影片...`);
+            try {
+                const compressedFile = await compressVideo(file);
+                filesToUpload.push(compressedFile);
+            } catch (e) {
+                console.error(`跳過失敗的影片 ${file.name}`);
+                continue; 
+            }
+        } else {
+            // 圖片直接上傳
+            filesToUpload.push(file);
+        }
+    }
+    
+    // ... (檔案檢查邏輯) ...
+
+    // 設置最終上傳狀態
+    btn.innerHTML = '上傳中...'; 
 
     const formData = new FormData();
     filesToUpload.forEach(file => {
@@ -250,7 +265,9 @@ async function uploadPhoto() {
     formData.append('targetAlbumId', targetAlbumId); 
 
     try {
-        const res = await fetch(`${BACKEND_URL}/upload`, {
+        // ⭐ 修正 2：修正 API 呼叫路徑 (移除 /api)
+        // 確保路徑與 server.js 中的 app.post('/upload', ...) 匹配
+        const res = await fetch(`${BACKEND_URL}/upload`, { 
             method: 'POST',
             body: formData,
         });
@@ -265,9 +282,7 @@ async function uploadPhoto() {
             selectedFiles = [];
             document.getElementById('previewGrid').innerHTML = '';
             document.getElementById('emptyState').style.display = 'block';
-            btn.innerHTML = `<svg viewBox="0 0 24 24" style="width:20px; height:20px; fill:white;"><path d="M9,16V10H5L12,3L19,10H15V16H9M5,20V18H19V20H5Z" /></svg> <span>上傳</span>`;
             
-            // 通知主頁面更新
             localStorage.setItem('albums_data_changed', 'true');
         } else {
             showMessage('error', `上傳失敗: ${result.error}`);
