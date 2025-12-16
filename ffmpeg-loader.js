@@ -9,14 +9,18 @@ let isFfmpegLoaded = false;
  * 載入 FFmpeg 核心並設定進度回呼
  * @param {FFmpeg} FFmpegClass - 從 window.FFmpeg 獲取的類別
  */
-async function loadFfmpeg(FFmpegClass) {
+async function load(FFmpegClass) {
     if (isFfmpegLoaded) return ffmpeg;
     
     // 檢查 FFmpeg 類別是否存在
     if (typeof FFmpegClass === 'undefined') {
-        const errorMsg = '❌ FFmpeg.js 函式庫尚未載入。';
-        window.showMessage('error', errorMsg);
-        throw new Error(errorMsg);
+        // ⭐ 新增檢查：嘗試從 window 取得
+        FFmpegClass = window.FFmpeg; 
+        if (typeof FFmpegClass === 'undefined') {
+            const errorMsg = '❌ FFmpeg.js 函式庫尚未載入。';
+            window.showMessage('error', errorMsg);
+            throw new Error(errorMsg);
+        }
     }
     
     window.showMessage('info', '正在載入影片處理核心 (FFmpeg.wasm)，請稍候...');
@@ -53,8 +57,7 @@ async function loadFfmpeg(FFmpegClass) {
 }
 
 // 暴露出全域變數供 upload.js 使用 (在全域腳本中會成功)
-window.FFMpegLoader = { 
-    load: () => loadFfmpeg(window.FFmpeg), 
-    getFfmpeg: () => ffmpeg, 
+window.FFMpegLoader = {
+    load: load, // <== 確保這裡暴露出的是 load 函式
     getIsLoaded: () => isFfmpegLoaded
 };

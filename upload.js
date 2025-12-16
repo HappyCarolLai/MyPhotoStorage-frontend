@@ -55,11 +55,14 @@ async function fetchAlbumsForSelect() {
 // ----------------------------------------------------
 async function loadFfmpeg() {
     // 檢查全域變數是否存在
-    if (window.FFMpegLoader && window.FFmpeg) {
-        // 呼叫 Loader 中的真正載入邏輯 (它會負責處理 try/catch 和狀態更新)
-        return await window.FFMpegLoader.load(); 
+    if (window.FFMpegLoader && window.FFmpeg) { 
+        // 呼叫 Loader 中的真正載入邏輯，並傳入 FFmpeg 類別
+        // ⭐ 關鍵修正：傳遞 window.FFmpeg 給 loader
+        return await window.FFMpegLoader.load(window.FFmpeg); 
     }
     // 如果腳本載入順序有問題
+    // 現在如果 load 成功，FFmpeg 就不會是 undefined 了。
+    // 如果走到這裡，表示 <script> 標籤有問題。
     throw new Error('FFmpeg 載入程式碼遺失或順序錯誤。');
 }
 
@@ -318,7 +321,8 @@ async function uploadPhoto() {
 // ----------------------------------------------------
 document.addEventListener('DOMContentLoaded', () => {
     // 在頁面載入時預先載入 FFmpeg
-    loadFfmpeg().catch(e => console.error('背景 FFmpeg 載入失敗', e)); 
+    // ⭐ 呼叫 loadFfmpeg()
+    loadFfmpeg().catch(e => console.error('背景 FFmpeg 載入失敗', e));
     
     window.uploadPhoto = uploadPhoto;
     fetchAlbumsForSelect(); 
