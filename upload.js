@@ -22,12 +22,11 @@ function showMessage(type, content) {
 window.showMessage = showMessage;
 
 // ----------------------------------------------------
-// 載入相簿選單 (保持現有 API 路徑，因為它工作正常)
+// 載入相簿選單 (保持不變)
 // ----------------------------------------------------
 async function fetchAlbumsForSelect() {
     const select = document.getElementById('targetAlbumSelect');
     try {
-        // ⚠️ 保持 /api/albums，因為您的網路記錄顯示它工作正常
         const res = await fetch(`${BACKEND_URL}/api/albums`); 
         const albums = await res.json();
         select.innerHTML = '';
@@ -51,16 +50,14 @@ async function fetchAlbumsForSelect() {
 }
 
 // ----------------------------------------------------
-// FFmpeg 載入函式 (最終修正：還原為檢查全域變數)
+// FFmpeg 載入函式 (⭐ 關鍵修正：檢查 FFmpegWASM)
 // ----------------------------------------------------
 async function loadFfmpeg() {
     // 檢查全域變數是否存在
-    // window.FFmpeg 現在預期由本地載入的 ffmpeg-cdn.js 定義
-    if (window.FFMpegLoader && window.FFmpeg) { 
-        // 呼叫 Loader 中的真正載入邏輯。
-        // 不傳參數，讓 ffmpeg-loader.js 依賴 window.FFmpeg 進行初始化。
-        // FFMpegLoader 的 load 函式已經有判斷是否為 undefined 的 fallback 邏輯。
-        return await window.FFMpegLoader.load(); 
+    // ⭐ 關鍵修正：將 window.FFmpeg 改為 window.FFmpegWASM
+    if (window.FFMpegLoader && window.FFmpegWASM) { 
+        // 呼叫 Loader 中的真正載入邏輯，並傳遞 FFmpegWASM 類別
+        return await window.FFMpegLoader.load(window.FFmpegWASM); 
     }
     // 如果腳本載入順序有問題
     throw new Error('FFmpeg 載入程式碼遺失或順序錯誤。');
@@ -81,7 +78,7 @@ async function compressVideo(file) {
         throw new Error('FFmpeg not initialized');
     }
 
-    // 顯示進度條 (進度條會在這裡出現)
+    // 顯示進度條
     compressionProgressDiv.style.display = 'block';
     progressFill.style.width = '0%';
     progressText.textContent = '0%';
@@ -120,7 +117,6 @@ async function compressVideo(file) {
 
     } catch (e) {
         console.error('影片壓縮失敗:', e);
-        // showMessage 在 finally 之後會執行，因此這裡不需要再 showMessage
         throw e; 
     } finally {
         // 清理虛擬檔案系統
@@ -136,7 +132,7 @@ async function compressVideo(file) {
 
 
 // ----------------------------------------------------
-// 處理檔案選取與預覽 (修正：移除 HEIC 檔案的 showMessage 呼叫)
+// 處理檔案選取與預覽 (保持不變)
 // ----------------------------------------------------
 function handleFiles(files) {
     const newFiles = Array.from(files);
@@ -179,7 +175,7 @@ function handleFiles(files) {
         media.alt = file.name;
         media.title = file.name;
         media.onerror = () => {
-             // ⭐ 修正 HEIC 頻繁跳動：移除 showMessage 呼叫
+             // 修正 HEIC 頻繁跳動：移除 showMessage 呼叫
              media.alt = `無法預覽: ${file.name}`;
              media.src = ''; 
              media.className = 'preview-error';
@@ -203,7 +199,7 @@ function handleFiles(files) {
 
 
 // ----------------------------------------------------
-// 上傳照片函式 (修正核心邏輯、同步等待、API 路徑)
+// 上傳照片函式 (保持不變)
 // ----------------------------------------------------
 async function uploadPhoto() {
     if (selectedFiles.length === 0) return;
@@ -215,7 +211,7 @@ async function uploadPhoto() {
 
     const filesToCompress = selectedFiles.filter(f => f.type.startsWith('video/'));
 
-    // ⭐ 修正 1：如果包含影片，則強制等待 FFmpeg 載入 (解決未載入問題)
+    // 如果包含影片，則強制等待 FFmpeg 載入
     if (filesToCompress.length > 0) {
         // 使用 window.FFMpegLoader.getIsLoaded() 檢查是否已載入
         if (!window.FFMpegLoader || !window.FFMpegLoader.getIsLoaded()) {
@@ -267,7 +263,7 @@ async function uploadPhoto() {
         }
     }
     
-    // ⭐ 修正 2：如果所有檔案都因壓縮失敗而被跳過，則中止上傳
+    // 如果所有檔案都因壓縮失敗而被跳過，則中止上傳
     if (filesToUpload.length === 0) { 
         showMessage('error', '❌ 所有選定檔案均處理失敗或被跳過。');
         btn.disabled = false;
@@ -285,8 +281,7 @@ async function uploadPhoto() {
     formData.append('targetAlbumId', targetAlbumId); 
 
     try {
-        // ⭐ 修正 3：修正 API 呼叫路徑 (移除 /api)
-        // 解決 404 錯誤：路徑從 /api/upload 改為 /upload
+        // 修正 API 呼叫路徑
         const res = await fetch(`${BACKEND_URL}/upload`, { 
             method: 'POST',
             body: formData,
@@ -316,12 +311,11 @@ async function uploadPhoto() {
     }
 }
 
-// ----------------------------------------------------
+// ----------------------------------------------------\
 // DOMContentLoaded
-// ----------------------------------------------------
+// ----------------------------------------------------\
 document.addEventListener('DOMContentLoaded', () => {
     // 在頁面載入時預先載入 FFmpeg
-    // ⭐ 呼叫 loadFfmpeg()
     loadFfmpeg().catch(e => console.error('背景 FFmpeg 載入失敗', e));
     
     window.uploadPhoto = uploadPhoto;

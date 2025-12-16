@@ -12,9 +12,10 @@ let isFfmpegLoaded = false;
 async function load(FFmpegClass) {
     if (isFfmpegLoaded) return ffmpeg;
     
-    // ⭐ 關鍵確認：當 upload.js 不傳入參數時，這裡會 fallback 到 window.FFmpeg
+    // 檢查 FFmpeg 類別是否存在
     if (typeof FFmpegClass === 'undefined') {
-        FFmpegClass = window.FFmpeg; 
+        // ⭐ 關鍵修正：嘗試從 window 取得 FFmpegWASM
+        FFmpegClass = window.FFmpegWASM; 
         if (typeof FFmpegClass === 'undefined') {
             const errorMsg = '❌ FFmpeg.js 函式庫尚未載入。';
             window.showMessage('error', errorMsg);
