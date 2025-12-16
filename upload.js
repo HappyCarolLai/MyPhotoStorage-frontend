@@ -1,7 +1,5 @@
 // upload.js (最終完整修正版)
 
-// ⭐ 刪除頂部所有關於 FFmpeg 的 import、isFfmpegLoaded、ffmpeg 的宣告！
-// 檔案開頭應該是:
 const BACKEND_URL = 'https://myphotostorage-backend.zeabur.app'; 
 let selectedFiles = []; 
 // FFmpeg 相關 DOM 元素
@@ -24,12 +22,13 @@ function showMessage(type, content) {
 window.showMessage = showMessage;
 
 // ----------------------------------------------------
-// 載入相簿選單 (修正 ReferenceError 處)
+// 載入相簿選單 (保持現有 API 路徑，因為它工作正常)
 // ----------------------------------------------------
 async function fetchAlbumsForSelect() {
     const select = document.getElementById('targetAlbumSelect');
     try {
-        const res = await fetch(`${BACKEND_URL}/api/albums`);
+        // ⚠️ 保持 /api/albums，因為您的網路記錄顯示它工作正常
+        const res = await fetch(`${BACKEND_URL}/api/albums`); 
         const albums = await res.json();
         select.innerHTML = '';
         
@@ -45,36 +44,41 @@ async function fetchAlbumsForSelect() {
             if (album.name === '未分類相簿') opt.selected = true;
             select.appendChild(opt);
         });
-    } catch (e) { console.error(e); }
+    } catch (e) { 
+        console.error(e); 
+        showMessage('error', '載入相簿清單失敗。');
+    }
 }
 
 // ----------------------------------------------------
-// FFmpeg 載入函式 (使用全域載入器)
+// FFmpeg 載入函式 (修正：簡化呼叫全域 loader)
 // ----------------------------------------------------
 async function loadFfmpeg() {
-    // 檢查全域變數是否存在 (確保 ffmpeg.js 和 ffmpeg-loader.js 已經載入)
+    // 檢查全域變數是否存在
     if (window.FFMpegLoader && window.FFmpeg) {
-        // 呼叫 Loader 中的真正載入邏輯
-        return await window.FFMpegLoader.loadFfmpeg(window.FFmpeg); 
+        // 呼叫 Loader 中的真正載入邏輯 (它會負責處理 try/catch 和狀態更新)
+        return await window.FFMpegLoader.load(); 
     }
-    return null;
+    // 如果腳本載入順序有問題
+    throw new Error('FFmpeg 載入程式碼遺失或順序錯誤。');
 }
 
 // ----------------------------------------------------
-// 影片壓縮核心函式
+// 影片壓縮核心函式 (保持不變)
 // ----------------------------------------------------
 /**
  * 壓縮影片檔案並返回壓縮後的 File 物件
  */
 async function compressVideo(file) {
-    const ffmpegInstance = window.FFMpegLoader.getFfmpeg(); // 從全域獲取實例
+    // 從全域獲取實例，這是正確的
+    const ffmpegInstance = window.FFMpegLoader.getFfmpeg(); 
 
     if (!ffmpegInstance) {
         window.showMessage('error', 'FFmpeg 核心未準備好，無法壓縮！');
         throw new Error('FFmpeg not initialized');
     }
 
-    // 顯示進度條
+    // 顯示進度條 (進度條會在這裡出現)
     compressionProgressDiv.style.display = 'block';
     progressFill.style.width = '0%';
     progressText.textContent = '0%';
@@ -113,7 +117,7 @@ async function compressVideo(file) {
 
     } catch (e) {
         console.error('影片壓縮失敗:', e);
-        showMessage('error', `影片 ${inputFileName} 壓縮失敗！請嘗試較小的檔案。`);
+        // showMessage 在 finally 之後會執行，因此這裡不需要再 showMessage
         throw e; 
     } finally {
         // 清理虛擬檔案系統
@@ -129,7 +133,7 @@ async function compressVideo(file) {
 
 
 // ----------------------------------------------------
-// 處理檔案選取與預覽 (先前遺漏的函式內容)
+// 處理檔案選取與預覽 (修正：移除 HEIC 檔案的 showMessage 呼叫)
 // ----------------------------------------------------
 function handleFiles(files) {
     const newFiles = Array.from(files);
@@ -172,12 +176,12 @@ function handleFiles(files) {
         media.alt = file.name;
         media.title = file.name;
         media.onerror = () => {
-             // 處理檔案無法預覽的情況 (例如 HEIC)
+             // ⭐ 修正 HEIC 頻繁跳動：移除 showMessage 呼叫
              media.alt = `無法預覽: ${file.name}`;
              media.src = ''; 
              media.className = 'preview-error';
              media.textContent = `無法預覽: ${file.name}`;
-             showMessage('warning', `注意：檔案 ${file.name} 無法在瀏覽器中預覽，但仍會嘗試上傳/轉換。`);
+             // 移除 showMessage('warning', ...)
         };
         if (file.type.startsWith('video/')) {
             media.controls = true;
@@ -188,38 +192,38 @@ function handleFiles(files) {
         previewGrid.appendChild(previewItem);
     });
 
-    // ⭐ 檔案選取後立即嘗試載入 FFmpeg
+    // 檔案選取後立即嘗試載入 FFmpeg
     if (selectedFiles.length > 0) {
-        loadFfmpeg(); 
+        loadFfmpeg().catch(e => console.error('背景 FFmpeg 載入失敗', e)); 
     }
 }
 
 
 // ----------------------------------------------------
-// 上傳照片函式 (修正核心邏輯)
+// 上傳照片函式 (修正核心邏輯、同步等待、API 路徑)
 // ----------------------------------------------------
-
 async function uploadPhoto() {
     if (selectedFiles.length === 0) return;
 
     const btn = document.getElementById('uploadButton');
     const targetAlbumId = document.getElementById('targetAlbumSelect').value;
+    
     btn.disabled = true; // 立即禁用按鈕
 
     const filesToCompress = selectedFiles.filter(f => f.type.startsWith('video/'));
-    
-    // ... (FFmpeg 載入邏輯保持不變 - 如果有影片，則強制等待) ...
-    // 我們假設這段邏輯是您之前貼上的最新版本，且已包含 loadFfmpeg() 的 await
-    
+
+    // ⭐ 修正 1：如果包含影片，則強制等待 FFmpeg 載入 (解決未載入問題)
     if (filesToCompress.length > 0) {
+        // 使用 window.FFMpegLoader.getIsLoaded() 檢查是否已載入
         if (!window.FFMpegLoader || !window.FFMpegLoader.getIsLoaded()) {
             btn.innerHTML = '正在準備影片核心...';
 
             try {
+                // 必須使用 await 等待非同步載入完成
                 await loadFfmpeg(); 
             } catch (e) {
                 // 載入失敗，中止流程
-                showMessage('error', '❌ FFmpeg 核心未準備好，無法壓縮');
+                showMessage('error', '❌ 影片核心載入失敗，無法上傳影片！');
                 btn.disabled = false;
                 btn.innerHTML = `<svg viewBox="0 0 24 24" style="width:20px; height:20px; fill:white;"><path d="M9,16V10H5L12,3L19,10H15V16H9M5,20V18H19V20H5Z" /></svg> <span>上傳</span>`;
                 return; 
@@ -237,31 +241,36 @@ async function uploadPhoto() {
     // 預先處理所有檔案
     for (const file of selectedFiles) {
         if (file.type.startsWith('video/')) {
-            currentVideoIndex++;
-            showMessage('info', `🎥 正在壓縮第 ${currentVideoIndex} / ${videoCount} 個影片...`);
-            try {
-                const compressedFile = await compressVideo(file);
-                filesToUpload.push(compressedFile);
-            } catch (e) {
-                // 如果壓縮失敗，直接跳過該檔案
-                console.error(`跳過失敗的影片 ${file.name}:`, e);
-                showMessage('warning', `⚠️ 影片 ${file.name} 壓縮失敗，已跳過`);
-                continue; 
+            // 現在核心已準備好，直接執行壓縮
+            if (window.FFMpegLoader && window.FFMpegLoader.getIsLoaded()) {
+                currentVideoIndex++;
+                showMessage('info', `🎥 正在壓縮第 ${currentVideoIndex} / ${videoCount} 個影片...`);
+                try {
+                    const compressedFile = await compressVideo(file);
+                    filesToUpload.push(compressedFile);
+                } catch (e) {
+                    console.error(`跳過失敗的影片 ${file.name}`);
+                    showMessage('warning', `⚠️ 影片 ${file.name} 壓縮失敗，已跳過`);
+                    continue; 
+                }
+            } else {
+                // 如果載入失敗，則上傳原檔
+                showMessage('warning', `⚠️ 影片核心未準備好，上傳 ${file.name} 原始檔案，速度可能較慢。`);
+                filesToUpload.push(file); 
             }
         } else {
+            // 圖片直接上傳
             filesToUpload.push(file);
         }
     }
-
-    // ⭐ 修正 1.1：新增檢查，如果所有檔案都因壓縮失敗而被跳過，則中止上傳
+    
+    // ⭐ 修正 2：如果所有檔案都因壓縮失敗而被跳過，則中止上傳
     if (filesToUpload.length === 0) { 
         showMessage('error', '❌ 所有選定檔案均處理失敗或被跳過。');
         btn.disabled = false;
         btn.innerHTML = `<svg viewBox="0 0 24 24" style="width:20px; height:20px; fill:white;"><path d="M9,16V10H5L12,3L19,10H15V16H9M5,20V18H19V20H5Z\" /></svg> <span>上傳</span>`;
         return; 
     }
-    
-    // ... (檔案檢查邏輯保持不變) ...
 
     // 設置最終上傳狀態
     btn.innerHTML = '上傳中...'; 
@@ -273,13 +282,13 @@ async function uploadPhoto() {
     formData.append('targetAlbumId', targetAlbumId); 
 
     try {
-        // ⭐ 修正 2：API 呼叫路徑 (移除 /api) - 保持與上次修正相同
+        // ⭐ 修正 3：修正 API 呼叫路徑 (移除 /api)
+        // 解決 404 錯誤：路徑從 /api/upload 改為 /upload
         const res = await fetch(`${BACKEND_URL}/upload`, { 
             method: 'POST',
             body: formData,
         });
-        
-        // ... (後續成功失敗邏輯保持不變) ...
+
         const result = await res.json();
         
         if (res.ok) {
@@ -293,13 +302,14 @@ async function uploadPhoto() {
             
             localStorage.setItem('albums_data_changed', 'true');
         } else {
+            // 後端回傳失敗訊息
             showMessage('error', `上傳失敗: ${result.error}`);
         }
     } catch (e) {
         showMessage('error', '上傳發生網路錯誤');
     } finally {
         btn.disabled = selectedFiles.length === 0;
-        if(selectedFiles.length === 0) btn.innerHTML = `<svg viewBox="0 0 24 24" style="width:20px; height:20px; fill:white;"><path d="M9,16V10H5L12,3L19,10H15V16H9M5,20V18H19V20H5Z\" /></svg> <span>上傳</span>`;
+        if(selectedFiles.length === 0) btn.innerHTML = `<svg viewBox="0 0 24 24" style="width:20px; height:20px; fill:white;"><path d="M9,16V10H5L12,3L19,10H15V16H9M5,20V18H19V20H5Z" /></svg> <span>上傳</span>`;
     }
 }
 
@@ -307,11 +317,11 @@ async function uploadPhoto() {
 // DOMContentLoaded
 // ----------------------------------------------------
 document.addEventListener('DOMContentLoaded', () => {
-    // ⭐ 在頁面載入時預先載入 FFmpeg
-    loadFfmpeg(); 
+    // 在頁面載入時預先載入 FFmpeg
+    loadFfmpeg().catch(e => console.error('背景 FFmpeg 載入失敗', e)); 
     
     window.uploadPhoto = uploadPhoto;
-    fetchAlbumsForSelect(); // 現在函式已定義，此處將不會再報 ReferenceError
+    fetchAlbumsForSelect(); 
 
     const dropArea = document.getElementById('dropArea');
     const fileInput = document.getElementById('photoFile');
