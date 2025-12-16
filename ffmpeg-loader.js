@@ -29,11 +29,13 @@ async function loadFfmpeg(FFmpegClass) {
         }
     });
 
+    // ffmpeg-loader.js (最終修正程式碼片段)
+
     try {
         await ffmpeg.load({
             coreURL: base + 'ffmpeg-core.js',
             wasmURL: base + 'ffmpeg-core.wasm',
-            // ⭐ 關鍵修正：必須顯式地指定 workerURL，解決 SecurityError
+            // ⭐ 修正點：必須顯式地指定 workerURL，解決 SecurityError (核心載入失敗)
             workerURL: base + 'ffmpeg-core.js', 
         });
         isFfmpegLoaded = true;

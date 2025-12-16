@@ -207,19 +207,19 @@ async function uploadPhoto() {
     btn.disabled = true; // 立即禁用按鈕
 
     const filesToCompress = selectedFiles.filter(f => f.type.startsWith('video/'));
-
-    // ⭐ 修正 1：如果包含影片，則強制等待 FFmpeg 載入
+    
+    // ... (FFmpeg 載入邏輯保持不變 - 如果有影片，則強制等待) ...
+    // 我們假設這段邏輯是您之前貼上的最新版本，且已包含 loadFfmpeg() 的 await
+    
     if (filesToCompress.length > 0) {
-        // 使用 loadFfmpeg() 來確保核心載入
         if (!window.FFMpegLoader || !window.FFMpegLoader.getIsLoaded()) {
             btn.innerHTML = '正在準備影片核心...';
 
             try {
-                // 必須使用 await 等待非同步載入完成
                 await loadFfmpeg(); 
             } catch (e) {
                 // 載入失敗，中止流程
-                showMessage('error', '❌ 影片核心載入失敗，無法上傳影片！');
+                showMessage('error', '❌ FFmpeg 核心未準備好，無法壓縮');
                 btn.disabled = false;
                 btn.innerHTML = `<svg viewBox="0 0 24 24" style="width:20px; height:20px; fill:white;"><path d="M9,16V10H5L12,3L19,10H15V16H9M5,20V18H19V20H5Z" /></svg> <span>上傳</span>`;
                 return; 
@@ -237,23 +237,31 @@ async function uploadPhoto() {
     // 預先處理所有檔案
     for (const file of selectedFiles) {
         if (file.type.startsWith('video/')) {
-            // 現在核心已準備好，直接執行壓縮
             currentVideoIndex++;
             showMessage('info', `🎥 正在壓縮第 ${currentVideoIndex} / ${videoCount} 個影片...`);
             try {
                 const compressedFile = await compressVideo(file);
                 filesToUpload.push(compressedFile);
             } catch (e) {
-                console.error(`跳過失敗的影片 ${file.name}`);
+                // 如果壓縮失敗，直接跳過該檔案
+                console.error(`跳過失敗的影片 ${file.name}:`, e);
+                showMessage('warning', `⚠️ 影片 ${file.name} 壓縮失敗，已跳過`);
                 continue; 
             }
         } else {
-            // 圖片直接上傳
             filesToUpload.push(file);
         }
     }
+
+    // ⭐ 修正 1.1：新增檢查，如果所有檔案都因壓縮失敗而被跳過，則中止上傳
+    if (filesToUpload.length === 0) { 
+        showMessage('error', '❌ 所有選定檔案均處理失敗或被跳過。');
+        btn.disabled = false;
+        btn.innerHTML = `<svg viewBox="0 0 24 24" style="width:20px; height:20px; fill:white;"><path d="M9,16V10H5L12,3L19,10H15V16H9M5,20V18H19V20H5Z\" /></svg> <span>上傳</span>`;
+        return; 
+    }
     
-    // ... (檔案檢查邏輯) ...
+    // ... (檔案檢查邏輯保持不變) ...
 
     // 設置最終上傳狀態
     btn.innerHTML = '上傳中...'; 
@@ -265,13 +273,13 @@ async function uploadPhoto() {
     formData.append('targetAlbumId', targetAlbumId); 
 
     try {
-        // ⭐ 修正 2：修正 API 呼叫路徑 (移除 /api)
-        // 確保路徑與 server.js 中的 app.post('/upload', ...) 匹配
+        // ⭐ 修正 2：API 呼叫路徑 (移除 /api) - 保持與上次修正相同
         const res = await fetch(`${BACKEND_URL}/upload`, { 
             method: 'POST',
             body: formData,
         });
-
+        
+        // ... (後續成功失敗邏輯保持不變) ...
         const result = await res.json();
         
         if (res.ok) {
@@ -291,7 +299,7 @@ async function uploadPhoto() {
         showMessage('error', '上傳發生網路錯誤');
     } finally {
         btn.disabled = selectedFiles.length === 0;
-        if(selectedFiles.length === 0) btn.innerHTML = `<svg viewBox="0 0 24 24" style="width:20px; height:20px; fill:white;"><path d="M9,16V10H5L12,3L19,10H15V16H9M5,20V18H19V20H5Z" /></svg> <span>上傳</span>`;
+        if(selectedFiles.length === 0) btn.innerHTML = `<svg viewBox="0 0 24 24" style="width:20px; height:20px; fill:white;"><path d="M9,16V10H5L12,3L19,10H15V16H9M5,20V18H19V20H5Z\" /></svg> <span>上傳</span>`;
     }
 }
 
