@@ -7,25 +7,22 @@ let isFfmpegLoaded = false;
 
 /**
  * 載入 FFmpeg 核心並設定進度回呼
- * @param {FFmpeg} FFmpegClass - 從 window.FFmpeg 獲取的類別
+ * @param {FFmpeg} FFmpegClass - 從 upload.js 傳遞過來的 FFmpeg 類別 (由 Dynamic Import 獲取)
  */
 async function load(FFmpegClass) {
     if (isFfmpegLoaded) return ffmpeg;
     
     // 檢查 FFmpeg 類別是否存在
     if (typeof FFmpegClass === 'undefined') {
-        // ⭐ 新增檢查：嘗試從 window 取得
-        FFmpegClass = window.FFmpeg; 
-        if (typeof FFmpegClass === 'undefined') {
-            const errorMsg = '❌ FFmpeg.js 函式庫尚未載入。';
-            window.showMessage('error', errorMsg);
-            throw new Error(errorMsg);
-        }
+        // 關鍵修正：不再嘗試從 window 取得，如果沒有傳入就是錯誤
+        const errorMsg = '❌ FFmpeg 類別未準備好。';
+        window.showMessage('error', errorMsg);
+        throw new Error(errorMsg); 
     }
     
     window.showMessage('info', '正在載入影片處理核心 (FFmpeg.wasm)，請稍候...');
 
-    ffmpeg = new FFmpegClass(); 
+    ffmpeg = new FFmpegClass();
 
     // 設定進度回呼
     ffmpeg.on('progress', ({ progress, time }) => {

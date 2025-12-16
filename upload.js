@@ -51,19 +51,38 @@ async function fetchAlbumsForSelect() {
 }
 
 // ----------------------------------------------------
-// FFmpeg 載入函式 (修正：簡化呼叫全域 loader)
+// FFmpeg 載入函式 (修正：使用 Dynamic Import 載入 ES Module)
 // ----------------------------------------------------
 async function loadFfmpeg() {
-    // 檢查全域變數是否存在
-    if (window.FFMpegLoader && window.FFmpeg) { 
-        // 呼叫 Loader 中的真正載入邏輯，並傳入 FFmpeg 類別
-        // ⭐ 關鍵修正：傳遞 window.FFmpeg 給 loader
-        return await window.FFMpegLoader.load(window.FFmpeg); 
+    // 1. 檢查是否已載入
+    // 這裡我們不再檢查 window.FFmpeg，因為它總是 undefined
+    if (window.FFMpegLoader && window.FFMpegLoader.getIsLoaded()) {
+        return; 
     }
-    // 如果腳本載入順序有問題
-    // 現在如果 load 成功，FFmpeg 就不會是 undefined 了。
-    // 如果走到這裡，表示 <script> 標籤有問題。
-    throw new Error('FFmpeg 載入程式碼遺失或順序錯誤。');
+    
+    // ⭐ 關鍵修正：使用 Dynamic Import 載入 ES Module
+    let FFmpegClass;
+    
+    try {
+        // 使用 ES Module 格式的 CDN 連結，通常會被瀏覽器正確識別和處理
+        const ffmpegModule = await import('https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.10/dist/esm/ffmpeg.js');
+        // 在 ES Module 中，FFmpeg 類別是命名匯出 (Named Export) 的
+        FFmpegClass = ffmpegModule.FFmpeg; 
+        
+    } catch (importError) {
+        console.error('FFmpeg ES Module 載入失敗', importError);
+        // 拋出更明確的錯誤，讓 DOMContentLoaded 捕獲
+        throw new Error('FFmpeg ES Module 載入失敗，請檢查網路或 CDN 連結。');
+    }
+
+    // 2. 檢查 FFMpegLoader 是否存在
+    if (window.FFMpegLoader && FFmpegClass) { 
+        // 呼叫 Loader 中的真正載入邏輯，並傳入 Dynamic Import 取得的類別
+        return await window.FFMpegLoader.load(FFmpegClass); 
+    }
+    
+    // 如果 FFMpegLoader 載入程式碼遺失 (script 標籤順序錯誤)
+    throw new Error('FFmpeg 載入程式碼遺失或順序錯誤 (FFMpegLoader 不存在)。');
 }
 
 // ----------------------------------------------------
