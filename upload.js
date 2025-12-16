@@ -51,38 +51,19 @@ async function fetchAlbumsForSelect() {
 }
 
 // ----------------------------------------------------
-// FFmpeg 載入函式 (修正：使用 Dynamic Import 載入 ES Module)
+// FFmpeg 載入函式 (最終修正：還原為檢查全域變數)
 // ----------------------------------------------------
 async function loadFfmpeg() {
-    // 1. 檢查是否已載入
-    // 這裡我們不再檢查 window.FFmpeg，因為它總是 undefined
-    if (window.FFMpegLoader && window.FFMpegLoader.getIsLoaded()) {
-        return; 
+    // 檢查全域變數是否存在
+    // window.FFmpeg 現在預期由本地載入的 ffmpeg-cdn.js 定義
+    if (window.FFMpegLoader && window.FFmpeg) { 
+        // 呼叫 Loader 中的真正載入邏輯。
+        // 不傳參數，讓 ffmpeg-loader.js 依賴 window.FFmpeg 進行初始化。
+        // FFMpegLoader 的 load 函式已經有判斷是否為 undefined 的 fallback 邏輯。
+        return await window.FFMpegLoader.load(); 
     }
-    
-    // ⭐ 關鍵修正：使用 Dynamic Import 載入 ES Module
-    let FFmpegClass;
-    
-    try {
-        // 使用 ES Module 格式的 CDN 連結，通常會被瀏覽器正確識別和處理
-        const ffmpegModule = await import('https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.10/dist/ffmpeg.js');
-        // 在 ES Module 中，FFmpeg 類別是命名匯出 (Named Export) 的
-        FFmpegClass = ffmpegModule.FFmpeg; 
-        
-    } catch (importError) {
-        console.error('FFmpeg ES Module 載入失敗', importError);
-        // 拋出更明確的錯誤，讓 DOMContentLoaded 捕獲
-        throw new Error('FFmpeg ES Module 載入失敗，請檢查網路或 CDN 連結。');
-    }
-
-    // 2. 檢查 FFMpegLoader 是否存在
-    if (window.FFMpegLoader && FFmpegClass) { 
-        // 呼叫 Loader 中的真正載入邏輯，並傳入 Dynamic Import 取得的類別
-        return await window.FFMpegLoader.load(FFmpegClass); 
-    }
-    
-    // 如果 FFMpegLoader 載入程式碼遺失 (script 標籤順序錯誤)
-    throw new Error('FFmpeg 載入程式碼遺失或順序錯誤 (FFMpegLoader 不存在)。');
+    // 如果腳本載入順序有問題
+    throw new Error('FFmpeg 載入程式碼遺失或順序錯誤。');
 }
 
 // ----------------------------------------------------
@@ -290,7 +271,7 @@ async function uploadPhoto() {
     if (filesToUpload.length === 0) { 
         showMessage('error', '❌ 所有選定檔案均處理失敗或被跳過。');
         btn.disabled = false;
-        btn.innerHTML = `<svg viewBox="0 0 24 24" style="width:20px; height:20px; fill:white;"><path d="M9,16V10H5L12,3L19,10H15V16H9M5,20V18H19V20H5Z\" /></svg> <span>上傳</span>`;
+        btn.innerHTML = `<svg viewBox="0 0 24 24" style="width:20px; height:20px; fill:white;"><path d="M9,16V10H5L12,3L19,10H15V16H9M5,20V18H19V20H5Z" /></svg> <span>上傳</span>`;
         return; 
     }
 
