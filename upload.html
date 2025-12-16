@@ -52,17 +52,8 @@
         </div>
 
     </div>
-<script>
-    // 確保路徑被計算為：https://happycarollai.github.io/MyPhotoStorage-frontend/ffmpeg_static/
-    // 這強制 FFmpeg.wasm 內部邏輯使用正確的 Worker 檔案位置。
-    // 注意：路徑末尾的斜線 '/' 必須存在。
-    window.__webpack_public_path__ = new URL('ffmpeg_static/', window.location.href).href;
-</script> 
-
 <script src="ffmpeg-cdn.js"></script> 
-
 <script src="ffmpeg-loader.js"></script>
-
 <script src="upload.js"></script>
 </body>
 </html>

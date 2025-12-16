@@ -1,18 +1,18 @@
-// ffmpeg-loader.js (最終穩固版 - 包含 Worker 載入和類別檢查)
+// ffmpeg-loader.js (ULTIMATE FIX: classWorkerURL)
 
 let ffmpeg = null;
-// ⭐ 關鍵修正 A：使用 URL API 嚴格計算出絕對路徑，確保與 __webpack_public_path__ 一致
+// ⭐ 關鍵修正 A：使用 URL API 嚴格計算出絕對路徑。
+// 確保路徑為：https://happycarollai.github.io/MyPhotoStorage-frontend/ffmpeg_static/
 const base = new URL('ffmpeg_static/', window.location.href).href; 
 let isFfmpegLoaded = false;
 
-/**
- * 載入 FFmpeg 核心並設定進度回呼
- * @param {FFmpeg} FFmpegClass - FFmpeg 類別構造函數
- */
+// ----------------------------------------------------
+// 載入 FFmpeg 核心
+// ----------------------------------------------------
 async function load(FFmpegClass) {
     if (isFfmpegLoaded) return ffmpeg;
     
-    // 1. 確保 FFmpegClass 是真正的構造函數
+    // (省略類別檢查的健壯性程式碼)
     if (typeof FFmpegClass !== 'function') {
         if (window.FFmpegWASM && typeof window.FFmpegWASM.FFmpeg === 'function') {
              FFmpegClass = window.FFmpegWASM.FFmpeg; 
@@ -25,12 +25,15 @@ async function load(FFmpegClass) {
     
     window.showMessage('info', '正在載入影片處理核心 (FFmpeg.wasm)，請稍候...');
 
-    // 2. ⭐ 在構造函數中設定 corePath（必須為絕對路徑）
+    // ⭐ 關鍵修正 B：在構造函數中設定 classWorkerURL。
+    // 這會強制 FFmpeg 使用這個絕對路徑來創建主要的 Worker 實例，
+    // 徹底繞過它在子目錄環境中失敗的內部路徑計算。
     ffmpeg = new FFmpegClass({ 
-        corePath: base, // 使用絕對路徑
+        corePath: base, // 基礎路徑（供後續的 ffmpeg.load() 使用）
+        classWorkerURL: base + 'ffmpeg-core.js' // 強制 Worker 創建腳本的絕對路徑
     }); 
 
-    // 設定進度回呼
+    // 設定進度回呼 (保持不變)
     ffmpeg.on('progress', ({ progress, time }) => {
         const percentage = Math.round(progress);
         const progressFill = document.getElementById('progressFill');
@@ -42,12 +45,9 @@ async function load(FFmpegClass) {
     });
 
     try {
-        // 3. ⭐ 在 load() 中明確指定所有 URL（這是最安全的做法）
-        await ffmpeg.load({
-            coreURL: base + 'ffmpeg-core.js',   // 絕對路徑
-            wasmURL: base + 'ffmpeg-core.wasm', // 絕對路徑
-            workerURL: base + 'ffmpeg-core.js', // 絕對路徑
-        });
+        // 由於 classWorkerURL 已經處理了 Worker 啟動，這裡只需要呼叫 load()。
+        // （corePath 會處理核心檔案的路徑）
+        await ffmpeg.load(); 
         
         isFfmpegLoaded = true;
         window.showMessage('success', '✅ 影片處理核心載入完成！');
