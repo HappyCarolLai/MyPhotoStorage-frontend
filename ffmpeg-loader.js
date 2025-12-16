@@ -1,22 +1,18 @@
-// ffmpeg-loader.js (FINAL & ULTIMATE GitHub Pages PATH FIX)
+// ffmpeg-loader.js (FINAL & ULTIMATE ROOT DIRECTORY FIX)
 
 let ffmpeg = null;
-// ⭐ 關鍵修正 A：使用 URL API 嚴格計算出絕對路徑。
-// 確保路徑為：https://happycarollai.github.io/MyPhotoStorage-frontend/ffmpeg_static/
-// window.location.href 會包含子目錄，這是最可靠的計算方式。
-const base = new URL('ffmpeg_static/', window.location.href).href; 
+// ⭐ 關鍵修正 A：現在核心檔案與 HTML/JS 檔案在同一根目錄，
+// 使用 '/' 作為絕對路徑的根目錄，例如：https://happycarollai.github.io/MyPhotoStorage-frontend/
+const base = window.location.origin + '/MyPhotoStorage-frontend/'; 
 let isFfmpegLoaded = false;
 
-console.log('FFmpeg Base Path Calculated:', base); // 檢查路徑是否正確
+console.log('FFmpeg Base Path Calculated:', base); 
 
-// ----------------------------------------------------
-// 載入 FFmpeg 核心
-// ----------------------------------------------------
+// ... (load 函式開始)
 async function load(FFmpegClass) {
     if (isFfmpegLoaded) return ffmpeg;
     
     // (省略類別檢查的健壯性程式碼)
-    // 確保 FFmpegClass 是從 window.FFmpegWASM 取得的
     if (typeof FFmpegClass !== 'function' && window.FFmpegWASM && typeof window.FFmpegWASM.FFmpeg === 'function') {
          FFmpegClass = window.FFmpegWASM.FFmpeg; 
     }
@@ -29,8 +25,8 @@ async function load(FFmpegClass) {
     
     window.showMessage('info', '正在載入影片處理核心 (FFmpeg.wasm)，請稍候...');
 
-    // ⭐ 關鍵修正 B：在構造函數中設定 classWorkerURL。
-    // 這會強制 Worker 內部使用這個絕對路徑來創建 Worker 實例，確保核心載入成功。
+    // ⭐ 關鍵修正 B：在構造函數中設定 classWorkerURL，並確保指向新的根目錄路徑。
+    // classWorkerURL: base + 'ffmpeg-core.js'
     ffmpeg = new FFmpegClass({ 
         corePath: base, // 基礎路徑
         classWorkerURL: base + 'ffmpeg-core.js' // 強制 Worker 創建腳本的絕對路徑
@@ -49,7 +45,6 @@ async function load(FFmpegClass) {
     });
 
     try {
-        // 呼叫 load()，FFmpeg 內部會使用 corePath 載入 ffmpeg-core.js/wasm
         await ffmpeg.load(); 
         
         isFfmpegLoaded = true;
@@ -57,7 +52,7 @@ async function load(FFmpegClass) {
         return ffmpeg;
     } catch (e) {
         console.error('❌ FFmpeg 核心載入失敗:', e);
-        window.showMessage('error', `❌ 影片核心載入失敗：${e.message}。請檢查 Network 面板中的 ffmpeg-core.js/wasm 請求。`);
+        window.showMessage('error', `❌ 影片核心載入失敗：${e.message}。`);
         throw new Error('FFmpeg 核心載入失敗');
     }
 }
