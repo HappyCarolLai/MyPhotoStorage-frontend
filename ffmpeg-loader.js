@@ -1,24 +1,40 @@
-// ffmpeg-loader.js (新檔案)
+// ffmpeg-loader.js (最終完整程式碼)
 
+// ----------------------------------------------------
+// 1. 全域變數和路徑設定
+// ----------------------------------------------------
 let ffmpeg = null;
 // ffmpeg-loader.js
 const base = '/ffmpeg_static/'; 
-// ❗注意：在 GitHub Pages 上，這會被解析為您的專案根目錄，例如：
-// https://<username>.github.io/<repo>/ffmpeg_static/
+// ❗注意：在 GitHub Pages 上，這會被解析為您的專案根目錄
 let isFfmpegLoaded = false;
+
+// ----------------------------------------------------
+// 2. 核心載入函式
+// ----------------------------------------------------
 
 /**
  * 載入 FFmpeg 核心並設定進度回呼
- * @param {FFmpeg} FFmpegClass - 從 window.FFmpeg 獲取的類別
+ * 這是非同步載入，會在背景進行。
  */
-async function loadFfmpeg(FFmpegClass) {
+async function loadFfmpeg() { 
     if (isFfmpegLoaded) return ffmpeg;
+    
+    // 檢查 FFmpeg 類別是否存在 (由 index.html 載入的 <script src="https://unpkg.com/@ffmpeg/ffmpeg@0.12.10/dist/ffmpeg.min.js"></script>)
+    if (typeof window.FFmpeg === 'undefined') {
+        const errorMsg = '❌ FFmpeg.js 函式庫尚未載入。';
+        console.error(errorMsg);
+        // showMessage 函式已在 upload.js 中定義並暴露給 window
+        window.showMessage('error', errorMsg);
+        throw new Error(errorMsg);
+    }
     
     window.showMessage('info', '正在載入影片處理核心 (FFmpeg.wasm)，請稍候...');
 
-    ffmpeg = new FFmpegClass(); 
+    // 實例化 FFmpeg
+    ffmpeg = new window.FFmpeg(); 
 
-    // 設定進度回呼
+    // 設定進度回呼 (用於顯示進度條)
     ffmpeg.on('progress', ({ progress, time }) => {
         const percentage = Math.round(progress);
         const progressFill = document.getElementById('progressFill');
@@ -29,30 +45,35 @@ async function loadFfmpeg(FFmpegClass) {
         }
     });
 
-    // ffmpeg-loader.js (最終修正程式碼片段)
-
     try {
         await ffmpeg.load({
             coreURL: base + 'ffmpeg-core.js',
             wasmURL: base + 'ffmpeg-core.wasm',
-            // ⭐ 修正點：必須顯式地指定 workerURL，解決 SecurityError (核心載入失敗)
+            // ⭐ 關鍵修正：解決 GitHub Pages/CORS 環境下的 SecurityError (核心載入失敗)
             workerURL: base + 'ffmpeg-core.js', 
         });
         isFfmpegLoaded = true;
         window.showMessage('success', '✅ 影片處理核心載入完成！');
+        return ffmpeg;
     } catch (e) {
-// ...
-        console.error('FFmpeg 載入失敗:', e);
-        window.showMessage('error', '❌ 影片處理核心載入失敗！請檢查控制台或網路。');
-        throw e; // 拋出錯誤供 upload.js 捕獲
+        console.error('❌ FFmpeg 核心載入失敗:', e);
+        window.showMessage('error', `❌ 影片核心載入失敗：${e.message}。`);
+        // 讓 loadFfmpeg 拋出錯誤，通知 uploadPhoto 中止
+        throw new Error('FFmpeg 核心載入失敗'); 
     }
-
-    return ffmpeg;
 }
 
-// 暴露出全域變數供 upload.js 使用
-window.FFMpegLoader = { 
-    loadFfmpeg, 
-    getFfmpeg: () => ffmpeg, 
-    getIsLoaded: () => isFfmpegLoaded
+// ----------------------------------------------------
+// 3. 供 upload.js 呼叫的介面 (暴露給全域)
+// ----------------------------------------------------
+
+// 檢查是否載入完成
+function getIsLoaded() {
+    return isFfmpegLoaded;
+}
+
+// 暴露給全域 (upload.js 會使用 window.FFMpegLoader.load() 和 window.FFMpegLoader.getIsLoaded())
+window.FFMpegLoader = {
+    load: loadFfmpeg, // 暴露 load 函式
+    getIsLoaded: getIsLoaded
 };
