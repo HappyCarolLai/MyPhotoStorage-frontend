@@ -53,7 +53,6 @@ async function fetchAlbumsForSelect() {
 // FFmpeg 載入函式 (⭐ 關鍵修正：提取 FFmpeg 類別)
 // ----------------------------------------------------
 async function loadFfmpeg() {
-    // 檢查全域變數是否存在
     // 檢查 FFMpegLoader 模組物件，以及 FFmpegWASM 模組物件內的 FFmpeg 類別
     if (window.FFMpegLoader && window.FFmpegWASM && typeof window.FFmpegWASM.FFmpeg === 'function') { 
         // ⭐ 關鍵修正：傳遞 window.FFmpegWASM.FFmpeg (實際的類別構造函數)

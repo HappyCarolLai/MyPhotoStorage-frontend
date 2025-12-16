@@ -1,8 +1,9 @@
-// ffmpeg-loader.js (最終修正版 - 處理核心檔案載入路徑)
+// ffmpeg-loader.js (絕對路徑最終修正版)
 
 let ffmpeg = null;
-// FFmpeg 核心檔案的路徑
-const base = '/ffmpeg_static/'; 
+// ⭐ 關鍵修正 1：將相對路徑改為完整的絕對 URL
+// 確保 Web Worker 能正確解析路徑，例如：https://yourdomain.com/ffmpeg_static/
+const base = window.location.origin + '/ffmpeg_static/'; 
 let isFfmpegLoaded = false;
 
 /**
@@ -12,12 +13,16 @@ let isFfmpegLoaded = false;
 async function load(FFmpegClass) {
     if (isFfmpegLoaded) return ffmpeg;
     
-    // 1. 修正類別提取：如果沒有傳入正確的類別，從模組物件中提取 (為防止回歸)
+    // 1. 檢查並確保 FFmpegClass 是真正的構造函數
     if (typeof FFmpegClass !== 'function' || typeof FFmpegClass === 'undefined') {
+        // 嘗試從 window.FFmpegWASM 中提取 FFmpeg 類別
         if (window.FFmpegWASM && typeof window.FFmpegWASM.FFmpeg === 'function') {
-             // 從模組物件中提取真正的類別構造函數
              FFmpegClass = window.FFmpegWASM.FFmpeg; 
+        } else if (window.FFmpegWASM && typeof window.FFmpegWASM === 'function') {
+             // 兼容舊版可能直接是 FFmpegWASM
+             FFmpegClass = window.FFmpegWASM; 
         }
+        
         if (typeof FFmpegClass !== 'function') {
             const errorMsg = '❌ FFmpeg.js 函式庫尚未載入。';
             window.showMessage('error', errorMsg);
@@ -27,13 +32,13 @@ async function load(FFmpegClass) {
     
     window.showMessage('info', '正在載入影片處理核心 (FFmpeg.wasm)，請稍候...');
 
-    // 2. ⭐ 關鍵修正：將 corePath 傳遞給構造函數
-    // 這是告訴 FFmpeg 庫去哪裡尋找 worker 和所有核心檔案 (包括 814.ffmpeg.js 等內部檔案)
+    // 2. ⭐ 關鍵修正 2：將 corePath 傳遞給構造函數
+    // 使用已經修正為絕對路徑的 base 變數
     ffmpeg = new FFmpegClass({ 
-        corePath: base // base = '/ffmpeg_static/'
+        corePath: base // 現在 base 是完整的絕對 URL (e.g., https://yourdomain/ffmpeg_static/)
     }); 
 
-    // 設定進度回呼
+    // 設定進度回呼 (保持不變)
     ffmpeg.on('progress', ({ progress, time }) => {
         const percentage = Math.round(progress);
         const progressFill = document.getElementById('progressFill');
@@ -62,6 +67,5 @@ async function load(FFmpegClass) {
 window.FFMpegLoader = {
     load: load, 
     getIsLoaded: () => isFfmpegLoaded,
-    // 為了健壯性，也提供 getFfmpeg
     getFfmpeg: () => ffmpeg
 };
