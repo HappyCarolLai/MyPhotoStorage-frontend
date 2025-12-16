@@ -65,7 +65,7 @@ async function loadFfmpeg() {
     
     try {
         // 使用 ES Module 格式的 CDN 連結，通常會被瀏覽器正確識別和處理
-        const ffmpegModule = await import('https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.10/dist/esm/ffmpeg.js');
+        const ffmpegModule = await import('https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.10/dist/ffmpeg.js');
         // 在 ES Module 中，FFmpeg 類別是命名匯出 (Named Export) 的
         FFmpegClass = ffmpegModule.FFmpeg; 
         
