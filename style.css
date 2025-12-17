@@ -365,37 +365,41 @@ h1 {
 /* Modal 彈出視窗 (修正置中問題) */
 /* ---------------------------------------------------- */
 
+/* --- Modal 彈出視窗精確置中 --- */
 .modal {
-    display: none; /* 由 JS 切換 */
+    display: none; 
     position: fixed;
     top: 0;
     left: 0;
-    width: 100vw;  /* 強制視窗寬度 */
-    height: 100vh; /* 強制視窗高度 */
+    width: 100vw;
+    height: 100vh;
     background-color: rgba(0, 0, 0, 0.6);
-    z-index: 9999; /* 確保在最上層 */
+    z-index: 9999;
     
-    /* 使用 Flexbox 讓子元素(modal-content) 絕對居中 */
+    /* ⭐ 確保內部內容水平、垂直絕對置中 ⭐ */
+    display: none; /* 預設隱藏 */
     justify-content: center;
     align-items: center;
+}
+
+/* ⭐ 關鍵修正：當 JS 觸發 block 時，強制轉回 flex 佈局 ⭐ */
+/* 這樣無論在電腦或手機，內容都會參考螢幕正中央 */
+#addAlbumModal[style*="block"], 
+#renameAlbumModal[style*="block"] {
+    display: flex !important;
 }
 
 .modal-content {
     background-color: #FFFFFF;
     padding: 30px;
-    width: 90%;      /* 手機端佔比 */
-    max-width: 400px; /* 電腦端最大寬度 */
+    width: 90%;
+    max-width: 400px;
     border-radius: 12px;
     position: relative;
-    /* 移除所有 margin，交給父層 Flex 處理 */
+    /* ⭐ 移除所有 auto margin，完全交給父層 Flex 處理 ⭐ */
     margin: 0 !important; 
     box-sizing: border-box;
-}
-
-/* 確保當 JS 把 display 改成 block 時，我們強制它變成 flex */
-#addAlbumModal[style*="block"], 
-#renameAlbumModal[style*="block"] {
-    display: flex !important;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.2);
 }
 
 .close {
