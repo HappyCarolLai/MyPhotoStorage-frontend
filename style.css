@@ -344,13 +344,12 @@ h1 {
     grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
     gap: 15px;
     padding: 15px;
-    
+    align-items: start;
     /* ⭐ 核心修正：啟用滾動軸 ⭐ */
     flex: 1;           /* 讓網格佔滿 photoView 的剩餘空間 */
     flex-shrink: 0;      /* 禁止網格本身被壓縮 */
     overflow-y: auto;       /* 當相片超出範圍時顯示垂直滾動軸 */
     min-height: 0;          /* 強制讓 Flex 容器知道這裡可以收縮 */
-    
     background-color: #F4F4F4; /* 加上跟首頁一樣的淺灰色底，視覺更統一 */
     border-radius: 8px;
 }
