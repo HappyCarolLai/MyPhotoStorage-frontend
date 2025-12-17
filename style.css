@@ -1,8 +1,9 @@
-/* style.css - 修正版：保留完整功能樣式並解決定位/滾動問題 */
+/* style.css - 簡約現代質感風格 (優化版 - 精確修復版) */
 
 /* ---------------------------------------------------- */
-/* 1. 全域設定：鎖定外層不滾動 */
+/* 全域設定與字體 */
 /* ---------------------------------------------------- */
+
 body {
     font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
     background-color: #F8F9FA; 
@@ -10,38 +11,34 @@ body {
     margin: 0;
     padding: 0;
     line-height: 1.6;
-    /* ⭐ 關鍵修復：禁止最外層滾動 ⭐ */
+    /* ⭐ 修正 1：鎖定最外層，防止雙重滾動 ⭐ */
     height: 100vh;
     overflow: hidden;
-    display: flex;
-    justify-content: center;
 }
 
 .container {
     max-width: 1000px;
-    width: 95%;
-    margin: 20px auto;
+    margin: 40px auto;
     padding: 30px;
     background-color: #FFFFFF; 
     border-radius: 12px;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
-    position: relative; 
-    
-    /* ⭐ 關鍵修復：內部 Flex 佈局，確保底部按鈕不消失 ⭐ */
-    height: calc(100vh - 40px); /* 扣除上下 margin */
+    position: relative;
+    /* ⭐ 修正 2：彈性佈局，確保內容與底部按鈕在視窗內 ⭐ */
+    height: calc(100vh - 80px); 
     display: flex;
     flex-direction: column;
     box-sizing: border-box;
 }
 
+/* ⭐ 修正 3：手機端適配，確保底部按鈕可見並維持結構 ⭐ */
 @media (max-width: 768px) {
     .container {
-        margin: 0;
+        margin: 10px auto; /* 稍微留點外距以顯示底邊感 */
+        height: calc(100vh - 20px);
         padding: 15px;
-        height: 100vh; /* 手機端填滿 */
-        max-width: 100%;
-        width: 100%;
-        border-radius: 0;
+        width: 95%;
+        border-radius: 8px;
     }
 }
 
@@ -52,12 +49,67 @@ h1 {
     border-bottom: 2px solid #E9ECEF;
     margin-bottom: 20px;
     font-weight: 300;
-    flex-shrink: 0; /* 固定頂部 */
+    flex-shrink: 0; /* 禁止標題被壓縮 */
 }
 
 /* ---------------------------------------------------- */
-/* 2. 滾動區域設定：只有這裡會滾動 */
+/* 按鈕與圖示通用樣式 (完全保留原本配色與樣式) */
 /* ---------------------------------------------------- */
+
+.icon-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 8px;
+    color: #6C757D;
+    transition: color 0.3s, transform 0.2s;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.icon-btn:hover {
+    color: #A08878;
+    transform: translateY(-2px);
+    background-color: rgba(0,0,0,0.03);
+    border-radius: 50%;
+}
+
+.icon-btn svg {
+    width: 28px; 
+    height: 28px;
+    fill: currentColor;
+}
+
+.btn-primary {
+    background-color: #A08878; 
+    color: white;
+    border: none;
+    padding: 8px 16px; 
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.95em;
+    font-weight: 600;
+    transition: background-color 0.3s;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.btn-primary:hover:not(:disabled) {
+    background-color: #8C7665;
+}
+
+.btn-primary:disabled {
+    background-color: #CCCCCC;
+    cursor: not-allowed;
+}
+
+/* ---------------------------------------------------- */
+/* 首頁：相簿列表與操作列 */
+/* ---------------------------------------------------- */
+
+/* ⭐ 修正 4：新增一個包裝層，確保列表能撐開並滾動 ⭐ */
 .album-section {
     display: flex;
     flex-direction: column;
@@ -65,73 +117,24 @@ h1 {
     min-height: 0;
 }
 
-.album-list-wrapper {
-    flex-grow: 1;
-    overflow-y: auto; /* ⭐ 僅此處滾動 ⭐ */
-    padding: 15px;
-    background-color: #F4F4F4; 
-    border-radius: 8px;
-}
-
-/* ---------------------------------------------------- */
-/* 3. 彈出視窗修復：解決偏右與置中問題 */
-/* ---------------------------------------------------- */
-.modal {
-    display: none;
-    position: fixed;
-    z-index: 999;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.6); 
-    backdrop-filter: blur(3px);
-    /* ⭐ 關鍵修復：使用 Flex 置中 ⭐ */
-    justify-content: center;
-    align-items: center;
-}
-
-/* 當 Modal 顯示時，透過 JS 或手動確保它是 display: flex */
-#addAlbumModal[style*="block"], 
-#renameAlbumModal[style*="block"] {
-    display: flex !important;
-}
-
-.modal-content {
-    background-color: #FFFFFF;
-    padding: 30px;
-    width: 85%;
-    max-width: 400px;
-    border-radius: 12px;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-    position: relative;
-    text-align: center; /* 內容置中 */
-}
-
-.close {
-    position: absolute;
-    top: 10px;
-    right: 15px;
-    color: #888;
-    font-size: 28px;
-    font-weight: bold;
-    cursor: pointer;
-    line-height: 1;
-}
-
-.close:hover { color: #333; }
-
-/* ---------------------------------------------------- */
-/* 4. 保留所有原本的網格與卡片樣式 (無刪減) */
-/* ---------------------------------------------------- */
 .main-actions-bar {
     display: flex;
-    justify-content: center;
+    justify-content: flex-end; 
     gap: 15px;
     margin-top: 20px;
     padding-top: 10px;
     border-top: 1px solid #E9ECEF;
-    flex-shrink: 0; /* 固定底部 */
+    flex-shrink: 0; /* 固定底部按鈕欄 */
+}
+
+.album-list-wrapper {
+    /* 移除固定的 max-height: 500px; */
+    flex-grow: 1; 
+    overflow-y: auto; /* 只有內層會滾動 */
+    padding-right: 10px; 
+    background-color: #F4F4F4; 
+    border-radius: 8px;
+    padding: 15px;
 }
 
 .album-grid {
@@ -145,18 +148,180 @@ h1 {
     flex-direction: column;
     text-decoration: none;
     color: inherit;
-    background-color: #FFFFFF; 
+    background-color: #F8F9FA; 
     padding: 15px;
     border-radius: 10px;
     border: 1px solid #E9ECEF;
-    transition: transform 0.2s;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+    transition: transform 0.2s, box-shadow 0.2s;
     position: relative;
     min-height: 100px;
 }
 
-.album-card:hover { transform: translateY(-3px); box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+.album-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+    background-color: #FFFFFF;
+}
 
-/* --- 這裡開始是您原本的相片與影片樣式 --- */
+.album-card h3 {
+    margin-top: 0;
+    font-size: 1.2em;
+    color: #495057;
+}
+
+.album-card-actions {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    display: flex;
+    gap: 5px;
+}
+
+.album-card-actions button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px;
+    color: #adb5bd;
+    transition: color 0.2s;
+}
+.album-card-actions button:hover {
+    color: #495057;
+}
+.album-card-actions svg {
+    width: 18px;
+    height: 18px;
+    fill: currentColor;
+}
+
+/* ---------------------------------------------------- */
+/* 上傳頁面 (完全保留原本樣式) */
+/* ---------------------------------------------------- */
+
+.upload-header-bar {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 20px;
+    background: #F4F4F4;
+    padding: 10px 15px;
+    border-radius: 8px;
+}
+
+.upload-header-bar select {
+    flex-grow: 1;
+    padding: 8px;
+    border: 1px solid #D1D8DF;
+    border-radius: 6px;
+    font-size: 1em;
+}
+
+#dropArea {
+    border: 3px dashed #A08878;
+    border-radius: 10px;
+    min-height: 250px;
+    padding: 20px;
+    background-color: #FFFFFF;
+    transition: background-color 0.3s;
+    position: relative;
+}
+
+#dropArea.drag-over {
+    background-color: #F0F0F0;
+}
+
+.preview-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: 10px;
+    width: 100%;
+    margin-top: 20px;
+}
+
+.preview-item {
+    position: relative;
+    aspect-ratio: 1;
+    border-radius: 6px;
+    overflow: hidden;
+    border: 1px solid #ddd;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.preview-item img, .preview-item video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.preview-item .video-thumbnail, 
+.preview-item .img-thumbnail {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.video-info {
+    position: absolute;
+    bottom: 0;
+    right: 0; 
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 3px 6px;
+    font-size: 0.75em;
+    border-radius: 4px 0 0 0;
+    z-index: 10;
+}
+
+.loading-placeholder {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    width: 100%;
+    background-color: #E9ECEF;
+    color: #6C757D;
+    font-size: 0.9em;
+    text-align: center;
+    padding: 10px;
+}
+
+.preview-item .remove-btn {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    z-index: 20;
+    background: rgba(0, 0, 0, 0.5);
+    color: white;
+    border: none;
+    width: 20px;
+    height: 20px;
+    line-height: 1;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.preview-item .remove-btn:hover {
+    background: #DC3545;
+}
+
+.empty-state-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    color: #6C757D;
+    pointer-events: none;
+    width: 100%;
+}
+
+/* ---------------------------------------------------- */
+/* 相簿內頁 & 燈箱 (完全保留原本樣式) */
+/* ---------------------------------------------------- */
+
 .photo-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
@@ -165,51 +330,26 @@ h1 {
 }
 
 .photo-card {
-    position: relative;
+    background: #fff;
+    border-radius: 8px;
     display: flex;
     flex-direction: column;
-    overflow: hidden;
-    border-radius: 8px;
-    background: #fff;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-
-.media-wrapper {
-    flex-grow: 1;
-    min-height: 150px;
     position: relative;
-    background: #000;
 }
 
 .photo-card img, .photo-card video {
     width: 100%;
-    height: 100%;
     object-fit: cover;
-    display: block;
-}
-
-.photo-info {
-    padding: 6px 10px;
-    background: #f8f9fa;
-    font-size: 0.85rem;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-.photo-actions {
-    display: flex;
-    justify-content: flex-end;
-    padding: 5px;
-    background: #fff;
+    cursor: pointer;
+    background: #000;
 }
 
 .video-indicator {
     position: absolute;
-    top: 10px;
-    right: 10px;
+    top: 15px;
+    right: 15px;
     background: rgba(0,0,0,0.6);
-    color: #fff;
+    color: white;
     border-radius: 50%;
     width: 24px;
     height: 24px;
@@ -217,41 +357,187 @@ h1 {
     align-items: center;
     justify-content: center;
     font-size: 12px;
+    pointer-events: none;
 }
 
 /* ---------------------------------------------------- */
-/* 5. 其他必要樣式 (按鈕、訊息) */
+/* Modal 彈出視窗 (修正置中問題) */
 /* ---------------------------------------------------- */
-.btn-primary {
-    background-color: #A08878; 
-    color: white;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 6px;
-    cursor: pointer;
-    font-weight: bold;
-}
 
-.icon-btn { background: none; border: none; cursor: pointer; color: #6C757D; }
-
-.message-box {
-    padding: 10px;
-    margin-bottom: 10px;
-    border-radius: 6px;
-    text-align: center;
-    flex-shrink: 0;
-}
-.message-box.success { background-color: #E6F7E6; color: #28A745; }
-.message-box.error { background-color: #FEEEEE; color: #DC3545; }
-
-/* 燈箱樣式保持原本邏輯 */
-#lightbox {
+.modal {
     display: none;
     position: fixed;
-    z-index: 1000;
-    left: 0; top: 0; width: 100%; height: 100%;
-    background: rgba(0,0,0,0.95);
+    z-index: 1000; /* 提高層級 */
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(3px);
+    /* ⭐ 修正 5：利用 Flexbox 完美置中彈出視窗 ⭐ */
     justify-content: center;
     align-items: center;
 }
-#lightboxImage, #lightboxVideo { max-width: 90%; max-height: 80%; }
+
+/* 確保 JS 顯示時使用 flex */
+#addAlbumModal[style*="block"], 
+#renameAlbumModal[style*="block"] {
+    display: flex !important;
+}
+
+.modal-content {
+    background-color: #FFFFFF;
+    margin: 0; /* 移除之前的 margin: 10% auto */
+    padding: 30px;
+    width: 85%;
+    max-width: 400px;
+    border-radius: 12px;
+    box-sizing: border-box;
+    text-align: center;
+    position: relative;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+}
+
+.close {
+    /* ⭐ 修正 6：關閉按鈕改為相對於 Modal 內容定位 ⭐ */
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    color: #888;
+    font-size: 30px;
+    cursor: pointer;
+    z-index: 101;
+}
+.close:hover { color: #333; }
+
+/* 燈箱樣式保持原本 */
+#lightbox {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(0, 0, 0, 0.9);
+}
+
+.lightbox-content-wrapper {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#lightboxImage, #lightboxVideo {
+    max-width: 95vw;
+    max-height: 85vh;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+    box-shadow: 0 0 20px rgba(0,0,0,0.5);
+    border-radius: 4px;
+}
+
+.nav-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    border: none;
+    padding: 15px;
+    font-size: 24px;
+    cursor: pointer;
+    border-radius: 50%;
+}
+
+.prev { left: 20px; }
+.next { right: 20px; }
+
+/* 訊息框 */
+.message-box {
+    padding: 10px;
+    margin-bottom: 15px;
+    border-radius: 6px;
+    text-align: center;
+    font-size: 0.9em;
+    flex-shrink: 0;
+}
+
+/* --- 相片網格 UI/UX 優化 (原本樣式) --- */
+
+.photo-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.media-wrapper {
+    flex-grow: 1;
+    height: 0;
+    min-height: 150px;
+    position: relative;
+    overflow: hidden;
+}
+
+.photo-card img, .photo-card video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.photo-info {
+    padding: 6px 10px;
+    background-color: #F8F9FA;
+    border-top: 1px solid #E9ECEF;
+    text-align: left;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 0.85rem;
+}
+
+.photo-filename {
+    display: block;
+    font-weight: 500;
+    color: #495057;
+}
+
+.photo-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 5px;
+    padding: 4px 8px;
+    background-color: #FFFFFF;
+}
+
+.photo-select-checkbox {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    z-index: 10;
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+    margin: 0;
+}
+
+.photo-actions .icon-btn {
+    padding: 6px;
+    width: 30px;
+    height: 30px;
+    color: #6C757D;
+    background: none;
+    border: none;
+}
+
+.photo-actions .icon-btn:hover {
+    color: #007BFF;
+    background: #E9ECEF;
+}
+
+.message-box.success { background-color: #E6F7E6; color: #28A745; }
+.message-box.error { background-color: #FEEEEE; color: #DC3545; }
+.message-box.loading { background-color: #EAEFF4; color: #007BFF; }
