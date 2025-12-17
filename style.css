@@ -400,19 +400,16 @@ h1 {
 }
 
 .action-bar {
-    width: 100%;            /* 佔滿寬度 */
     display: flex;
-    justify-content: center; /* ⭐ 確保相簿名稱在中間 */
-    align-items: center;
+    align-items: flex-start;  /* 以返回鍵頂部為基準 */
+    gap: 15px;
     border-bottom: 1px solid #E9ECEF;
     padding-bottom: 15px;
-    margin-bottom: 20px;
 }
 
 #currentAlbumName {
-    margin: 0 !important;   /* 去掉所有外距 */
-    text-align: center;
-    line-height: 1.2;       /* 讓文字垂直高度更精確 */
+    margin: 0;
+    line-height: 1.2;
 }
 
 /* ---------------------------------------------------- */
