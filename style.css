@@ -354,17 +354,14 @@ h1 {
 }
 
 .photo-card {
-    flex-shrink: 0; /* 確保卡片不會被擠壓 */
-    height: auto; 
-    min-height: 200px; /* 設定一個最小高度，確保不會被壓扁 */
-    background: #fff;
-    border-radius: 8px;
+    flex-shrink: 1;        /* 允許縮小 */
+    height: auto;
+    min-height: 0;         /* 不限制高度 */
     display: flex;
     flex-direction: column;
     position: relative;
-    overflow: hidden;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
+
 
 .photo-card img,
 .photo-card video {
@@ -567,12 +564,15 @@ h1 {
 
 /* --- 相片網格 UI/UX 優化 (原本樣式) --- */
 .media-wrapper {
-    position: relative;
-    overflow: hidden;
     width: 100%;
-    aspect-ratio: 16 / 9;
-    flex-shrink: 0;
+    height: auto;           /* 讓圖片高度自適應 */
 }
+.media-wrapper img, .media-wrapper video {
+    width: 100%;
+    height: auto;
+    object-fit: cover;
+}
+
 
 .photo-info {
     padding: 6px 10px;
