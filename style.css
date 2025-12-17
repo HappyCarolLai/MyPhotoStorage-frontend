@@ -388,6 +388,7 @@ h1 {
     display: flex !important;
 }
 
+/* --- 彈出視窗內容精確對齊 --- */
 .modal-content {
     background-color: #FFFFFF;
     padding: 30px;
@@ -399,43 +400,38 @@ h1 {
     box-sizing: border-box;
     box-shadow: 0 8px 25px rgba(0,0,0,0.2);
     
-    /* ⭐ 關鍵：讓內部所有元素垂直堆疊並置中 ⭐ */
+    /* 核心修改：使用 Flex 並預設靠左(flex-start) */
     display: flex;
     flex-direction: column;
-    align-items: center; 
-    text-align: center;
+    align-items: flex-start; 
 }
 
-.modal-content h3 {
+/* 標題與標籤：自動繼承父層的靠左對齊 */
+.modal-content h3, .modal-content label {
     margin-top: 0;
-    margin-bottom: 15px;
+    margin-bottom: 10px;
     color: #495057;
+    text-align: left;
     width: 100%;
 }
 
-.modal-content label {
-    display: block;
-    margin-bottom: 8px;
-    color: #666;
-    width: 100%;
-}
-
-/* ⭐ 輸入框文字置中 ⭐ */
+/* 輸入框：強制文字靠左 */
 .modal-content input[type="text"] {
     width: 100%;
     padding: 10px;
     margin-bottom: 20px;
     border: 1px solid #D1D8DF;
     border-radius: 6px;
-    text-align: center; 
+    text-align: left; /* ⭐ 輸入框內容靠左 */
     box-sizing: border-box;
 }
 
-/* ⭐ 按鈕底色縮小並置中 ⭐ */
+/* 確認按鈕：寬度縮小並單獨設定靠右 */
 .modal-content .btn-primary {
-    width: auto;         /* 寬度隨文字撐開 */
-    min-width: 120px;    /* 保持一定寬度更有質感 */
-    padding: 8px 30px;   /* 增加左右內邊距讓底色變修長 */
+    width: auto;         /* ⭐ 寬度隨文字縮小 */
+    min-width: 100px;
+    padding: 8px 25px;
+    align-self: flex-end; /* ⭐ 關鍵：讓按鈕自己在容器中靠右 */
     justify-content: center;
 }
 
