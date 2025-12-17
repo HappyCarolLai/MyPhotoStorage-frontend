@@ -322,16 +322,27 @@ h1 {
 /* ---------------------------------------------------- */
 /* 相簿內頁 & 燈箱 (完全保留原本樣式) */
 /* ---------------------------------------------------- */
+/* 確保中間包裝層填滿剩餘空間並限制高度 */
+#photoView {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    min-height: 0; /* 關鍵：允許子元素收縮以觸發滾動 */
+}
 
 .photo-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
     gap: 15px;
-    padding-top: 15px;
-    /* ⭐ 加入以下三行實現滾動軸 ⭐ */
-    flex-grow: 1;           /* 佔滿剩餘空間 */
-    overflow-y: auto;       /* 內容超出時顯示滾動軸 */
-    min-height: 0;          /* 這是 Flex 滾動的必要設定 */
+    padding: 15px;
+    
+    /* ⭐ 核心修正：啟用滾動軸 ⭐ */
+    flex-grow: 1;           /* 讓網格佔滿 photoView 的剩餘空間 */
+    overflow-y: auto;       /* 當相片超出範圍時顯示垂直滾動軸 */
+    min-height: 0;          /* 強制讓 Flex 容器知道這裡可以收縮 */
+    
+    background-color: #F4F4F4; /* 加上跟首頁一樣的淺灰色底，視覺更統一 */
+    border-radius: 8px;
 }
 
 /* 確保內頁的容器結構能支撐滾動 */
