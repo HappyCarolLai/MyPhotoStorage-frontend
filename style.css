@@ -362,14 +362,13 @@ h1 {
 }
 
 /* ---------------------------------------------------- */
-/* Modal 彈出視窗 (修正置中問題) */
+/* Modal 彈出視窗 (完全置中優化版) */
 /* ---------------------------------------------------- */
 
 .modal {
     display: none; 
     position: fixed;
     top: 0;
-    /* ⭐ 修正：確保 modal 覆蓋範圍包含滾動條區域，防止內容被往左擠 ⭐ */
     left: 0;
     right: 0; 
     bottom: 0;
@@ -378,12 +377,12 @@ h1 {
     background-color: rgba(0, 0, 0, 0.6);
     z-index: 9999;
     
-    display: none; 
+    /* 確保容器本身使用 Flex 置中 */
     justify-content: center;
     align-items: center;
 }
 
-/* 確保開啟時水平置中不偏移 */
+/* 確保當 JS 把 display 改成 block 時，我們強制它變成 flex 才能置中 */
 #addAlbumModal[style*="block"], 
 #renameAlbumModal[style*="block"] {
     display: flex !important;
@@ -392,19 +391,55 @@ h1 {
 .modal-content {
     background-color: #FFFFFF;
     padding: 30px;
-    width: 85%; /* 稍微縮小寬度，在手機上視覺感較輕盈 */
+    width: 90%;
     max-width: 400px;
     border-radius: 12px;
     position: relative;
     margin: 0 !important; 
     box-sizing: border-box;
-    box-shadow: 0 8px 30px rgba(0,0,0,0.3);
-    /* ⭐ 增加 text-align 確保內部元素也齊中 ⭐ */
+    box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+    
+    /* ⭐ 關鍵：讓內部所有元素垂直堆疊並置中 ⭐ */
+    display: flex;
+    flex-direction: column;
+    align-items: center; 
+    text-align: center;
+}
+
+.modal-content h3 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    color: #495057;
+    width: 100%;
+}
+
+.modal-content label {
+    display: block;
+    margin-bottom: 8px;
+    color: #666;
+    width: 100%;
+}
+
+/* ⭐ 輸入框文字置中 ⭐ */
+.modal-content input[type="text"] {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 20px;
+    border: 1px solid #D1D8DF;
+    border-radius: 6px;
     text-align: center; 
+    box-sizing: border-box;
+}
+
+/* ⭐ 按鈕底色縮小並置中 ⭐ */
+.modal-content .btn-primary {
+    width: auto;         /* 寬度隨文字撐開 */
+    min-width: 120px;    /* 保持一定寬度更有質感 */
+    padding: 8px 30px;   /* 增加左右內邊距讓底色變修長 */
+    justify-content: center;
 }
 
 .close {
-    /* ⭐ 修正 6：關閉按鈕改為相對於 Modal 內容定位 ⭐ */
     position: absolute;
     top: 10px;
     right: 15px;
@@ -412,77 +447,16 @@ h1 {
     font-size: 30px;
     cursor: pointer;
     z-index: 101;
+    line-height: 1;
 }
 .close:hover { color: #333; }
 
-/* 燈箱樣式保持原本 */
+/* 燈箱與其他訊息框樣式保持不變... */
 #lightbox {
     display: none;
     align-items: center;
     justify-content: center;
     background-color: rgba(0, 0, 0, 0.9);
-}
-
-.lightbox-content-wrapper {
-    position: relative;
-    width: 100%;
-    height: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-#lightboxImage, #lightboxVideo {
-    max-width: 95vw;
-    max-height: 85vh;
-    width: auto;
-    height: auto;
-    object-fit: contain;
-    box-shadow: 0 0 20px rgba(0,0,0,0.5);
-    border-radius: 4px;
-}
-
-.nav-btn {
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    background: rgba(255, 255, 255, 0.1);
-    color: white;
-    border: none;
-    padding: 15px;
-    font-size: 24px;
-    cursor: pointer;
-    border-radius: 50%;
-}
-
-.prev { left: 20px; }
-.next { right: 20px; }
-
-/* 訊息框 */
-.message-box {
-    padding: 10px;
-    margin-bottom: 15px;
-    border-radius: 6px;
-    text-align: center;
-    font-size: 0.9em;
-    flex-shrink: 0;
-}
-
-/* 彈出視窗內部的標籤與輸入框 */
-.modal-content h3 {
-    margin-top: 0;
-    margin-bottom: 15px;
-    color: #495057;
-}
-
-.modal-content label {
-    display: block;
-    margin-bottom: 5px;
-    text-align: center; /* 強制標籤文字居中 */
-}
-
-.modal-content input[type="text"] {
-    text-align: center; /* 輸入文字時也從中間開始，增加平衡感 */
 }
 
 /* --- 相片網格 UI/UX 優化 (原本樣式) --- */

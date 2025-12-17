@@ -32,25 +32,21 @@
     </div>
 
     <div id="addAlbumModal" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="document.getElementById('addAlbumModal').style.display='none'">&times;</span>
-            <h3>建立新的留影簿</h3>
-            <label for="newAlbumName">留影簿名稱:</label>
-            <input type="text" id="newAlbumName" placeholder="例如：2024年生活日常" style="width: 100%; padding: 8px; margin: 10px 0;">
-            <button onclick="addNewAlbum()" class="btn-primary" style="width:100%; justify-content:center;">確認建立</button>
-        </div>
-    </div>
+    <div class="modal-content">
+        <span class="close" onclick="document.getElementById('addAlbumModal').style.display='none'">&times;</span>
+        <h3>建立新的留影簿</h3>
+        <label for="newAlbumName">留影簿名稱:</label>
+        <input type="text" id="newAlbumName" placeholder="例如：2024年生活日常"> <button onclick="addNewAlbum()" class="btn-primary">確認建立</button> </div>
+</div>
 
-    <div id="renameAlbumModal" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="document.getElementById('renameAlbumModal').style.display='none'">&times;</span>
-            <h3>重新命名留影簿</h3>
-            <label for="newRenameAlbumName">新名稱:</label>
-            <input type="text" id="newRenameAlbumName" style="width: 100%; padding: 8px; margin: 10px 0;">
-            <input type="hidden" id="renameAlbumId">
-            <button onclick="renameAlbum()" class="btn-primary" style="width:100%; justify-content:center;">確認更名</button>
-        </div>
-    </div>
+<div id="renameAlbumModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="document.getElementById('renameAlbumModal').style.display='none'">&times;</span>
+        <h3>重新命名留影簿</h3>
+        <label for="newRenameAlbumName">新名稱:</label>
+        <input type="text" id="newRenameAlbumName"> <input type="hidden" id="renameAlbumId">
+        <button onclick="renameAlbum()" class="btn-primary">確認更名</button> </div>
+</div>
 
     <script src="script.js"></script>
 </body>
