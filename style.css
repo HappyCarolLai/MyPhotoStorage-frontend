@@ -639,19 +639,23 @@ h1 {
 #photoView {
     display: flex !important;
     flex-direction: column !important;
-    flex-grow: 1 !important;
+    flex: 1 !important;
     min-height: 0 !important; 
+    height: 100% !important;     /* 確保高度被限制 */
 }
 
 /* 2. 確保網格產生滾動條 */
 .photo-grid {
-    flex-grow: 1 !important;
-    overflow-y: auto !important; /* 強制啟動滾動軸 */
-    min-height: 0 !important;
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
     gap: 15px;
     padding: 15px;
+    
+    /* ⭐ 核心修正 ⭐ */
+    flex: 1;            /* 佔滿剩餘空間 */
+    overflow-y: auto;   /* 垂直滾動開啟 */
+    min-height: 0;      /* 再次確保可收縮 */
+    
     background-color: #F4F4F4;
     border-radius: 8px;
 }
