@@ -447,12 +447,72 @@ h1 {
 }
 .close:hover { color: #333; }
 
-/* 燈箱與其他訊息框樣式保持不變... */
+/* ---------------------------------------------------- */
+/* 燈箱 (Lightbox) - 修正自適應視窗問題 */
+/* ---------------------------------------------------- */
+
 #lightbox {
     display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.9);
+    z-index: 10000; /* 確保在所有 Modal 之上 */
     align-items: center;
     justify-content: center;
-    background-color: rgba(0, 0, 0, 0.9);
+}
+
+.lightbox-content-wrapper {
+    position: relative;
+    width: 90vw; /* 限制寬度在視窗 90% */
+    height: 90vh; /* 限制高度在視窗 90% */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* ⭐ 關鍵修正：確保圖片與影片自適應 ⭐ */
+#lightboxImage, #lightboxVideo {
+    max-width: 100%;  /* 不超過父層容器寬度 */
+    max-height: 100%; /* 不超過父層容器高度 */
+    width: auto;
+    height: auto;
+    object-fit: contain; /* 保持原比例縮放，不裁切 */
+    box-shadow: 0 0 20px rgba(0,0,0,0.5);
+    border-radius: 4px;
+}
+
+.nav-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    border: none;
+    padding: 15px;
+    font-size: 24px;
+    cursor: pointer;
+    border-radius: 50%;
+    transition: background 0.3s;
+    z-index: 10001;
+}
+
+.nav-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+.prev { left: 20px; }
+.next { right: 20px; }
+
+@media (max-width: 768px) {
+    .nav-btn {
+        padding: 10px;
+        font-size: 18px;
+    }
+    .prev { left: 10px; }
+    .next { right: 10px; }
 }
 
 /* --- 相片網格 UI/UX 優化 (原本樣式) --- */
