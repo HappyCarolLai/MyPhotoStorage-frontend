@@ -400,17 +400,23 @@ h1 {
 }
 
 .action-bar {
+    position: relative;      /* 讓標題絕對定位參考這個容器 */
     display: flex;
-    align-items: flex-start;  /* 以返回鍵頂部為基準 */
-    gap: 15px;
+    align-items: flex-start; /* 返回鍵靠頂部 */
+    padding: 8px 0;
     border-bottom: 1px solid #E9ECEF;
-    padding-bottom: 15px;
 }
 
 #currentAlbumName {
+    position: absolute;      /* 從容器絕對定位 */
+    top: 50%;                /* 垂直中心 */
+    left: 50%;               /* 水平中心 */
+    transform: translate(-50%, -50%); /* 真正置中 */
     margin: 0;
     line-height: 1.2;
+    white-space: nowrap;     /* 防止換行影響置中 */
 }
+
 
 /* ---------------------------------------------------- */
 /* Modal 彈出視窗 (完全置中優化版) */
