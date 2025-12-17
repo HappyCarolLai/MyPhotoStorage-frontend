@@ -1,8 +1,14 @@
-// upload.js (後端壓縮專用版)
+// upload.js (帶有輪詢機制的後端壓縮版)
 
 const BACKEND_URL = 'https://myphotostorage-backend.zeabur.app'; 
 let selectedFiles = []; 
-// ⭐ 修正：移除所有 FFmpeg 相關 DOM 元素
+let activeTaskIds = []; // 追蹤所有正在處理的任務 ID
+let pollingInterval = null; // 輪詢計時器
+
+// DOM 元素
+const uploadButton = document.getElementById('uploadButton');
+const compressionProgressDiv = document.getElementById('compressionProgress'); // 恢復此 div (但用途改變)
+const progressList = document.getElementById('progressList');
 
 
 // ----------------------------------------------------
@@ -21,6 +27,7 @@ window.showMessage = showMessage;
 // 載入相簿選單 (保持不變)
 // ----------------------------------------------------
 async function fetchAlbumsForSelect() {
+    // ... (fetchAlbumsForSelect 邏輯保持不變)
     const select = document.getElementById('targetAlbumSelect');
     try {
         const res = await fetch(`${BACKEND_URL}/api/albums`); 
@@ -46,92 +53,144 @@ async function fetchAlbumsForSelect() {
 }
 
 // ----------------------------------------------------
-// ⭐ 修正：移除 loadFfmpeg 函式
-// ⭐ 修正：移除 compressVideo 函式
+// 任務狀態追蹤與輪詢
 // ----------------------------------------------------
 
+/**
+ * 更新任務進度列表的 UI
+ */
+function updateProgressUI() {
+    progressList.innerHTML = '';
+    let allCompleted = true;
 
-// ----------------------------------------------------
-// 處理檔案選取與預覽 (移除 loadFfmpeg 呼叫)
-// ----------------------------------------------------
-function handleFiles(files) {
-    const newFiles = Array.from(files);
-    selectedFiles = selectedFiles.concat(newFiles);
-    
-    const previewGrid = document.getElementById('previewGrid');
-    const emptyState = document.getElementById('emptyState');
-    const uploadButton = document.getElementById('uploadButton');
-    
-    emptyState.style.display = 'none';
-    uploadButton.disabled = false;
+    activeTaskIds.forEach(taskId => {
+        const task = mediaTasks[taskId];
 
-    const dropArea = document.getElementById('dropArea');
-    dropArea.classList.remove('drag-over');
+        if (!task) return; // 任務已被清理或未找到
 
-    newFiles.forEach(file => {
-        const previewItem = document.createElement('div');
-        previewItem.className = 'preview-item';
-        
-        const deleteBtn = document.createElement('button');
-        deleteBtn.className = 'delete-btn';
-        deleteBtn.innerHTML = '×';
-        deleteBtn.onclick = () => {
-            selectedFiles = selectedFiles.filter(f => f !== file);
-            previewGrid.removeChild(previewItem);
-            
-            if (selectedFiles.length === 0) {
-                emptyState.style.display = 'block';
-                uploadButton.disabled = true;
-            }
-        };
-        previewItem.appendChild(deleteBtn);
+        const statusClass = {
+            'PENDING': 'progress-pending',
+            'PROCESSING': 'progress-processing',
+            'COMPLETED': 'progress-success',
+            'FAILED': 'progress-error'
+        }[task.status] || 'progress-pending';
 
-        const media = document.createElement(file.type.startsWith('video/') ? 'video' : 'img');
-        media.src = URL.createObjectURL(file);
-        media.alt = file.name;
-        media.title = file.name;
-        media.onerror = () => {
-             media.alt = `無法預覽: ${file.name}`;
-             media.src = ''; 
-             media.className = 'preview-error';
-             media.textContent = `無法預覽: ${file.name}`;
-        };
-        if (file.type.startsWith('video/')) {
-            media.controls = true;
-            media.muted = true;
+        const icon = {
+            'PENDING': '⏳',
+            'PROCESSING': '⚙️',
+            'COMPLETED': '✅',
+            'FAILED': '❌'
+        }[task.status] || '❓';
+
+        if (task.status !== 'COMPLETED' && task.status !== 'FAILED') {
+            allCompleted = false;
         }
 
-        previewItem.appendChild(media);
-        previewGrid.appendChild(previewItem);
+        const listItem = document.createElement('div');
+        listItem.className = `progress-item ${statusClass}`;
+        
+        // 顯示原始檔名和狀態訊息
+        listItem.innerHTML = `${icon} <strong>${task.originalFileName}</strong>: ${task.message}`;
+        progressList.appendChild(listItem);
     });
+
+    if (activeTaskIds.length > 0) {
+        compressionProgressDiv.style.display = 'block';
+    } else {
+        compressionProgressDiv.style.display = 'none';
+    }
+
+    if (allCompleted && activeTaskIds.length > 0) {
+        clearInterval(pollingInterval);
+        pollingInterval = null;
+        
+        // 標記所有相簿數據可能已變更
+        localStorage.setItem('albums_data_changed', 'true');
+        
+        // 顯示總結訊息
+        const failedCount = activeTaskIds.filter(id => mediaTasks[id] && mediaTasks[id].status === 'FAILED').length;
+        if (failedCount === activeTaskIds.length) {
+            showMessage('error', `❌ ${failedCount} 個檔案處理失敗，請檢查日誌。`);
+        } else if (failedCount > 0) {
+            showMessage('warning', `⚠️ 處理完成。${activeTaskIds.length - failedCount} 個成功，${failedCount} 個失敗。`);
+        } else {
+            showMessage('success', `✅ 所有 ${activeTaskIds.length} 個檔案處理完成！請查看相簿。`);
+        }
+        
+        // 10 秒後清除任務列表
+        setTimeout(() => {
+            activeTaskIds = [];
+            compressionProgressDiv.style.display = 'none';
+        }, 10000); 
+
+        // 恢復上傳按鈕
+        uploadButton.disabled = false;
+        uploadButton.innerHTML = `<svg viewBox="0 0 24 24" style="width:20px; height:20px; fill:white;"><path d="M9,16V10H5L12,3L19,10H15V16H9M5,20V18H19V20H5Z" /></svg> <span>上傳</span>`;
+    }
+}
+
+
+/**
+ * 輪詢伺服器以檢查所有任務的狀態
+ */
+async function pollTaskStatus() {
+    if (activeTaskIds.length === 0) {
+        clearInterval(pollingInterval);
+        pollingInterval = null;
+        return;
+    }
+
+    // 複製一份任務 ID 列表，以防在迴圈中發生變化
+    const idsToPoll = [...activeTaskIds]; 
+    const tasks = {}; // 暫存任務狀態
+
+    for (const taskId of idsToPoll) {
+        try {
+            const res = await fetch(`${BACKEND_URL}/api/tasks/status/${taskId}`);
+            if (res.ok) {
+                const taskStatus = await res.json();
+                tasks[taskId] = { ...mediaTasks[taskId], ...taskStatus };
+            } else {
+                // 如果任務在伺服器端被刪除或找不到，將其標記為已清理 (FAILED)
+                tasks[taskId] = { status: 'FAILED', message: '任務在伺服器端已過期或不存在。', originalFileName: '未知檔案' };
+            }
+        } catch (e) {
+            console.error(`輪詢任務 ${taskId} 失敗:`, e);
+            tasks[taskId] = { status: 'FAILED', message: '網路連線錯誤', originalFileName: '未知檔案' };
+        }
+    }
     
-    // ⭐ 修正：移除 loadFfmpeg() 的呼叫
+    // 將輪詢結果合併回全域的 mediaTasks 
+    idsToPoll.forEach(taskId => {
+        if (tasks[taskId]) {
+            mediaTasks[taskId] = tasks[taskId];
+        }
+    });
+
+    updateProgressUI();
 }
 
 
 // ----------------------------------------------------
-// 上傳照片函式 (簡化為直接上傳)
+// 上傳照片函式 (使用新 API)
 // ----------------------------------------------------
 async function uploadPhoto() {
     if (selectedFiles.length === 0) return;
 
-    const btn = document.getElementById('uploadButton');
+    uploadButton.disabled = true;
+    uploadButton.innerHTML = '正在提交...'; 
+
     const targetAlbumId = document.getElementById('targetAlbumSelect').value;
     
-    btn.disabled = true;
-    btn.innerHTML = '上傳中...'; 
-    showMessage('info', `正在上傳 ${selectedFiles.length} 個檔案到伺服器進行處理...`);
-
-
     const formData = new FormData();
-    // 直接上傳所有檔案 (包括影片)
     selectedFiles.forEach(file => {
         formData.append('photos', file); 
     });
     formData.append('targetAlbumId', targetAlbumId); 
 
     try {
-        const res = await fetch(`${BACKEND_URL}/upload`, { 
+        // ⭐ 使用新 API: /api/tasks/submit-upload
+        const res = await fetch(`${BACKEND_URL}/api/tasks/submit-upload`, { 
             method: 'POST',
             body: formData,
         });
@@ -139,38 +198,48 @@ async function uploadPhoto() {
         const result = await res.json();
         
         if (res.ok) {
-            const successCount = result.results.filter(r => r.status === 'success').length;
-            const errorCount = result.results.filter(r => r.status === 'error').length;
-            
-            if (errorCount > 0) {
-                 showMessage('warning', `⚠️ 上傳完成。成功 ${successCount} 個，失敗 ${errorCount} 個。`);
-            } else {
-                 showMessage('success', `✅ 成功上傳 ${successCount} 個檔案，後端正在進行處理！`);
+            const newTasks = result.taskIds;
+            if (newTasks && newTasks.length > 0) {
+                // 將新任務添加到追蹤列表
+                activeTaskIds.push(...newTasks);
+                // 初始化前端的任務狀態
+                newTasks.forEach((taskId, index) => {
+                    mediaTasks[taskId] = {
+                        status: 'PENDING',
+                        message: '等待伺服器回應...',
+                        originalFileName: selectedFiles[index].name,
+                    };
+                });
+                
+                // 清空選取並更新 UI
+                selectedFiles = [];
+                document.getElementById('previewGrid').innerHTML = '';
+                document.getElementById('emptyState').style.display = 'block';
+
+                showMessage('info', `✅ ${newTasks.length} 個檔案已提交到伺服器背景處理。`);
+                
+                // 啟動輪詢
+                if (!pollingInterval) {
+                    pollingInterval = setInterval(pollTaskStatus, 5000); // 每 5 秒輪詢一次
+                }
+                updateProgressUI(); // 立即更新一次 UI
             }
-            
-            selectedFiles = [];
-            document.getElementById('previewGrid').innerHTML = '';
-            document.getElementById('emptyState').style.display = 'block';
-            
-            localStorage.setItem('albums_data_changed', 'true');
         } else {
-            showMessage('error', `上傳失敗: ${result.error}`);
+            showMessage('error', `提交失敗: ${result.error}`);
         }
     } catch (e) {
         showMessage('error', '上傳發生網路錯誤');
     } finally {
-        btn.disabled = selectedFiles.length === 0;
-        // 還原按鈕文字
-        if(selectedFiles.length === 0) btn.innerHTML = `<svg viewBox="0 0 24 24" style="width:20px; height:20px; fill:white;"><path d="M9,16V10H5L12,3L19,10H15V16H9M5,20V18H19V20H5Z" /></svg> <span>上傳</span>`;
+        // 按鈕狀態會在輪詢結束時恢復
     }
 }
+
 
 // ----------------------------------------------------
 // DOMContentLoaded
 // ----------------------------------------------------
 document.addEventListener('DOMContentLoaded', () => {
-    // ⭐ 修正：移除 loadFfmpeg() 呼叫
-    
+    // ... (其他 DOM 邏輯保持不變)
     window.uploadPhoto = uploadPhoto;
     fetchAlbumsForSelect(); 
 
@@ -201,4 +270,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         e.target.value = ''; // 重設 input 讓使用者可以選取相同檔案
     });
+    
+    // 初始化 UI
+    updateProgressUI();
 });
+// ... (handleFiles 邏輯保持不變)
