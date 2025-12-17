@@ -571,13 +571,11 @@ h1 {
 
 /* --- 相片網格 UI/UX 優化 (原本樣式) --- */
 .media-wrapper {
-    flex-grow: 1;
-    height: 0;
-    min-height: 150px;
     position: relative;
     overflow: hidden;
     width: 100%;
-    flex-shrink: 0; /* 禁止縮放比例 */
+    aspect-ratio: 16 / 9;
+    flex-shrink: 0;
 }
 
 .photo-info {
