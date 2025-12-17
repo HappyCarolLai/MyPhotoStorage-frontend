@@ -24,21 +24,22 @@ body {
     border-radius: 12px;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
     position: relative;
-    /* ⭐ 修正 2：彈性佈局，確保內容與底部按鈕在視窗內 ⭐ */
-    height: calc(100vh - 80px); 
     display: flex;
     flex-direction: column;
     box-sizing: border-box;
+    
+    /* ⭐ 電腦端：減去上下邊距 (40px * 2) ⭐ */
+    height: calc(100vh - 80px); 
 }
 
-/* ⭐ 修正 3：手機端適配，確保底部按鈕可見並維持結構 ⭐ */
 @media (max-width: 768px) {
     .container {
-        margin: 10px auto; /* 稍微留點外距以顯示底邊感 */
-        height: calc(100vh - 20px);
+        /* ⭐ 手機端：使用 dvh 確保底部不被網址列遮住 ⭐ */
+        height: 100dvh; 
+        margin: 0; /* 手機端通常不留上下邊距，以免按鈕被擠到更下面 */
+        width: 100%;
+        border-radius: 0;
         padding: 15px;
-        width: 95%;
-        border-radius: 8px;
     }
 }
 
@@ -365,37 +366,36 @@ h1 {
 /* ---------------------------------------------------- */
 
 .modal {
-    display: none;
+    display: none; /* 由 JS 切換 */
     position: fixed;
-    z-index: 1000; /* 提高層級 */
-    left: 0;
     top: 0;
-    width: 100%;
-    height: 100%;
+    left: 0;
+    width: 100vw;  /* 強制視窗寬度 */
+    height: 100vh; /* 強制視窗高度 */
     background-color: rgba(0, 0, 0, 0.6);
-    backdrop-filter: blur(3px);
-    /* ⭐ 修正 5：利用 Flexbox 完美置中彈出視窗 ⭐ */
+    z-index: 9999; /* 確保在最上層 */
+    
+    /* 使用 Flexbox 讓子元素(modal-content) 絕對居中 */
     justify-content: center;
     align-items: center;
 }
 
-/* 確保 JS 顯示時使用 flex */
+.modal-content {
+    background-color: #FFFFFF;
+    padding: 30px;
+    width: 90%;      /* 手機端佔比 */
+    max-width: 400px; /* 電腦端最大寬度 */
+    border-radius: 12px;
+    position: relative;
+    /* 移除所有 margin，交給父層 Flex 處理 */
+    margin: 0 !important; 
+    box-sizing: border-box;
+}
+
+/* 確保當 JS 把 display 改成 block 時，我們強制它變成 flex */
 #addAlbumModal[style*="block"], 
 #renameAlbumModal[style*="block"] {
     display: flex !important;
-}
-
-.modal-content {
-    background-color: #FFFFFF;
-    margin: 0; /* 移除之前的 margin: 10% auto */
-    padding: 30px;
-    width: 85%;
-    max-width: 400px;
-    border-radius: 12px;
-    box-sizing: border-box;
-    text-align: center;
-    position: relative;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
 }
 
 .close {
