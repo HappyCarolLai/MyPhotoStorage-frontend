@@ -322,23 +322,23 @@ h1 {
 /* ---------------------------------------------------- */
 /* 相簿內頁 & 燈箱 (完全保留原本樣式) */
 /* ---------------------------------------------------- */
-
-/* 確保中間包裝層填滿剩餘空間並限制高度 */
 #photoView {
-    display: flex;
+    display: flex; 
     flex-direction: column;
-    flex-grow: 1;
+    flex: 1;
+    height: 100% !important; 
     min-height: 0; /* 關鍵：允許子元素收縮以觸發滾動 */
     overflow: hidden; /* 關鍵 2：確保超出部分由子層處理滾動 */
 }
 
 #backToAlbums {
-    position: absolute;      /* ⭐ 脫離內容流，不擠壓標題 */
-    left: 0;                /* 靠最左 */
-    top: 50%;               /* 垂直置中起始點 */
-    transform: translateY(-70%); /* ⭐ 精確對齊：向上移動抵消位移，使其與文字等高 */
-    margin-bottom: 0 !important; /* 移除原本的下邊距避免歪掉 */
+    align-self: flex-start; /* ⭐ 強制自己靠左 */
+    margin-left: 0;
+    margin-bottom: 10px;    /* 稍微縮短與標題的間距，讓視覺等高感更好 */
+    padding: 8px;
+    display: flex;
 }
+
 .photo-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
@@ -346,7 +346,7 @@ h1 {
     padding: 15px;
     
     /* ⭐ 核心修正：啟用滾動軸 ⭐ */
-    flex-grow: 1;           /* 讓網格佔滿 photoView 的剩餘空間 */
+    flex: 1;           /* 讓網格佔滿 photoView 的剩餘空間 */
     flex-shrink: 0;      /* 禁止網格本身被壓縮 */
     overflow-y: auto;       /* 當相片超出範圍時顯示垂直滾動軸 */
     min-height: 0;          /* 強制讓 Flex 容器知道這裡可以收縮 */
@@ -363,8 +363,7 @@ h1 {
 }
 
 .photo-card {
-    /* 確保卡片不會被擠壓 */
-    flex-shrink: 0; 
+    flex-shrink: 0; /* 確保卡片不會被擠壓 */
     height: auto; 
     min-height: 200px; /* 設定一個最小高度，確保不會被壓扁 */
     background: #fff;
@@ -372,18 +371,14 @@ h1 {
     display: flex;
     flex-direction: column;
     position: relative;
-}
-
-.media-wrapper {
-    /* 確保影片與照片網格本身有固定比例，不隨視窗縮放 */
-    aspect-ratio: 16 / 9; 
-    width: 100%;
     overflow: hidden;
-    flex-shrink: 0; /* 禁止縮放比例 */
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
-.photo-card img, .photo-card video {
+.photo-card img,
+.photo-card video {
     width: 100%;
+    height: 100%;
     object-fit: cover;
     cursor: pointer;
     background: #000;
@@ -406,21 +401,19 @@ h1 {
 }
 
 .action-bar {
+    width: 100%;            /* 佔滿寬度 */
     display: flex;
+    justify-content: center; /* ⭐ 確保相簿名稱在中間 */
     align-items: center;
-    justify-content: center; /* ⭐ 讓標題置中 */
-    position: relative;      /* ⭐ 設為基準點 */
-    min-height: 50px;        /* 確保高度足夠讓兩者等高 */
     border-bottom: 1px solid #E9ECEF;
-    padding-bottom: 10px;
+    padding-bottom: 15px;
     margin-bottom: 20px;
 }
 
 #currentAlbumName {
-    margin: 0;
-    font-size: 1.5rem;      /* 調整為您喜歡的大小 */
-    line-height: 1.2;
+    margin: 0 !important;   /* 去掉所有外距 */
     text-align: center;
+    line-height: 1.2;       /* 讓文字垂直高度更精確 */
 }
 
 /* ---------------------------------------------------- */
@@ -577,28 +570,14 @@ h1 {
 }
 
 /* --- 相片網格 UI/UX 優化 (原本樣式) --- */
-
-.photo-card {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-    border-radius: 8px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-
 .media-wrapper {
     flex-grow: 1;
     height: 0;
     min-height: 150px;
     position: relative;
     overflow: hidden;
-}
-
-.photo-card img, .photo-card video {
     width: 100%;
-    height: 100%;
-    object-fit: cover;
+    flex-shrink: 0; /* 禁止縮放比例 */
 }
 
 .photo-info {
@@ -656,38 +635,6 @@ h1 {
 .photo-actions .icon-btn:hover {
     color: #007BFF;
     background: #E9ECEF;
-}
-
-/* --- 最終滾動修復方案 --- */
-
-/* 1. 確保中間層級限制高度 */
-#photoView {
-    display: flex !important;
-    flex-direction: column !important;
-    flex: 1 !important;
-    min-height: 0 !important; 
-    height: 100% !important;     /* 確保高度被限制 */
-}
-
-/* 2. 確保網格產生滾動條 */
-.photo-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-    gap: 15px;
-    padding: 15px;
-    
-    /* ⭐ 核心修正 ⭐ */
-    flex: 1;            /* 佔滿剩餘空間 */
-    overflow-y: auto;   /* 垂直滾動開啟 */
-    min-height: 0;      /* 再次確保可收縮 */
-    
-    background-color: #F4F4F4;
-    border-radius: 8px;
-}
-
-/* 3. 確保照片卡片不被壓扁 (維持原狀) */
-.photo-card {
-    flex-shrink: 0 !important;
 }
 
 .message-box.success { background-color: #E6F7E6; color: #28A745; }
