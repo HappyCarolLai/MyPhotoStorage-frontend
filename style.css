@@ -365,25 +365,25 @@ h1 {
 /* Modal 彈出視窗 (修正置中問題) */
 /* ---------------------------------------------------- */
 
-/* --- Modal 彈出視窗精確置中 --- */
 .modal {
     display: none; 
     position: fixed;
     top: 0;
+    /* ⭐ 修正：確保 modal 覆蓋範圍包含滾動條區域，防止內容被往左擠 ⭐ */
     left: 0;
-    width: 100vw;
-    height: 100vh;
+    right: 0; 
+    bottom: 0;
+    width: 100%;
+    height: 100%;
     background-color: rgba(0, 0, 0, 0.6);
     z-index: 9999;
     
-    /* ⭐ 確保內部內容水平、垂直絕對置中 ⭐ */
-    display: none; /* 預設隱藏 */
+    display: none; 
     justify-content: center;
     align-items: center;
 }
 
-/* ⭐ 關鍵修正：當 JS 觸發 block 時，強制轉回 flex 佈局 ⭐ */
-/* 這樣無論在電腦或手機，內容都會參考螢幕正中央 */
+/* 確保開啟時水平置中不偏移 */
 #addAlbumModal[style*="block"], 
 #renameAlbumModal[style*="block"] {
     display: flex !important;
@@ -392,14 +392,15 @@ h1 {
 .modal-content {
     background-color: #FFFFFF;
     padding: 30px;
-    width: 90%;
+    width: 85%; /* 稍微縮小寬度，在手機上視覺感較輕盈 */
     max-width: 400px;
     border-radius: 12px;
     position: relative;
-    /* ⭐ 移除所有 auto margin，完全交給父層 Flex 處理 ⭐ */
     margin: 0 !important; 
     box-sizing: border-box;
-    box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+    box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+    /* ⭐ 增加 text-align 確保內部元素也齊中 ⭐ */
+    text-align: center; 
 }
 
 .close {
