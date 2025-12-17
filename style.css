@@ -332,6 +332,13 @@ h1 {
     overflow: hidden; /* 關鍵 2：確保超出部分由子層處理滾動 */
 }
 
+#backToAlbums {
+    position: absolute;      /* ⭐ 脫離內容流，不擠壓標題 */
+    left: 0;                /* 靠最左 */
+    top: 50%;               /* 垂直置中起始點 */
+    transform: translateY(-70%); /* ⭐ 精確對齊：向上移動抵消位移，使其與文字等高 */
+    margin-bottom: 0 !important; /* 移除原本的下邊距避免歪掉 */
+}
 .photo-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
@@ -396,6 +403,24 @@ h1 {
     justify-content: center;
     font-size: 12px;
     pointer-events: none;
+}
+
+.action-bar {
+    display: flex;
+    align-items: center;
+    justify-content: center; /* ⭐ 讓標題置中 */
+    position: relative;      /* ⭐ 設為基準點 */
+    min-height: 50px;        /* 確保高度足夠讓兩者等高 */
+    border-bottom: 1px solid #E9ECEF;
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+}
+
+#currentAlbumName {
+    margin: 0;
+    font-size: 1.5rem;      /* 調整為您喜歡的大小 */
+    line-height: 1.2;
+    text-align: center;
 }
 
 /* ---------------------------------------------------- */
