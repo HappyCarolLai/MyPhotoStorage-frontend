@@ -332,11 +332,10 @@ h1 {
 }
 
 #backToAlbums {
-    align-self: flex-start; /* ⭐ 強制自己靠左 */
-    margin-left: 0;
-    margin-bottom: 10px;    /* 稍微縮短與標題的間距，讓視覺等高感更好 */
-    padding: 8px;
+    flex-shrink: 0;          /* 不被壓縮 */
     display: flex;
+    align-items: center;
+    padding: 8px;
 }
 
 .photo-grid {
