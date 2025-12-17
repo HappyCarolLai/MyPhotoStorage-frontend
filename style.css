@@ -27,9 +27,9 @@ body {
     display: flex;
     flex-direction: column;
     box-sizing: border-box;
-    
+    overflow: hidden; /* 防止最外層出現雙重滾動軸 */
     /* ⭐ 電腦端：減去上下邊距 (40px * 2) ⭐ */
-    height: calc(100vh - 80px); 
+    height: calc(100vh - 80px);  
 }
 
 @media (max-width: 768px) {
@@ -322,6 +322,7 @@ h1 {
 /* ---------------------------------------------------- */
 /* 相簿內頁 & 燈箱 (完全保留原本樣式) */
 /* ---------------------------------------------------- */
+
 /* 確保中間包裝層填滿剩餘空間並限制高度 */
 #photoView {
     display: flex;
@@ -630,6 +631,34 @@ h1 {
 .photo-actions .icon-btn:hover {
     color: #007BFF;
     background: #E9ECEF;
+}
+
+/* --- 最終滾動修復方案 --- */
+
+/* 1. 確保中間層級限制高度 */
+#photoView {
+    display: flex !important;
+    flex-direction: column !important;
+    flex-grow: 1 !important;
+    min-height: 0 !important; 
+}
+
+/* 2. 確保網格產生滾動條 */
+.photo-grid {
+    flex-grow: 1 !important;
+    overflow-y: auto !important; /* 強制啟動滾動軸 */
+    min-height: 0 !important;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 15px;
+    padding: 15px;
+    background-color: #F4F4F4;
+    border-radius: 8px;
+}
+
+/* 3. 確保照片卡片不被壓扁 (維持原狀) */
+.photo-card {
+    flex-shrink: 0 !important;
 }
 
 .message-box.success { background-color: #E6F7E6; color: #28A745; }
