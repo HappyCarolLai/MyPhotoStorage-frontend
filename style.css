@@ -328,6 +328,17 @@ h1 {
     grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
     gap: 15px;
     padding-top: 15px;
+    /* ⭐ 加入以下三行實現滾動軸 ⭐ */
+    flex-grow: 1;           /* 佔滿剩餘空間 */
+    overflow-y: auto;       /* 內容超出時顯示滾動軸 */
+    min-height: 0;          /* 這是 Flex 滾動的必要設定 */
+}
+
+/* 確保內頁的容器結構能支撐滾動 */
+.album-detail-container {
+    display: flex;
+    flex-direction: column;
+    height: 100%; /* 確保繼承父層高度 */
 }
 
 .photo-card {
@@ -399,11 +410,10 @@ h1 {
     margin: 0 !important; 
     box-sizing: border-box;
     box-shadow: 0 8px 25px rgba(0,0,0,0.2);
-    
     /* 核心修改：使用 Flex 並預設靠左(flex-start) */
     display: flex;
     flex-direction: column;
-    align-items: flex-start; 
+    align-items: flex-start; /* 確保標題、標籤預設靠左 */
 }
 
 /* 標題與標籤：自動繼承父層的靠左對齊 */
@@ -583,6 +593,13 @@ h1 {
     color: #6C757D;
     background: none;
     border: none;
+}
+
+/* 強制讓返回按鈕（通常在 h1 或 header 附近）靠左 */
+.container > .icon-btn:first-child,
+.upload-header-bar > .icon-btn:first-child {
+    align-self: flex-start; /* 確保在 Flex 容器中靠左 */
+    margin-right: auto;    /* 將剩餘空間推向右側 */
 }
 
 .photo-actions .icon-btn:hover {
