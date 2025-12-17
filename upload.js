@@ -1,4 +1,4 @@
-// upload.js (帶有輪詢機制的後端壓縮版，已恢復影片預覽)
+// upload.js (帶有輪詢機制的後端壓縮版，使用 Canvas 截取影片靜態縮圖)
 
 const BACKEND_URL = 'https://myphotostorage-backend.zeabur.app'; 
 let selectedFiles = []; 
@@ -57,10 +57,10 @@ async function fetchAlbumsForSelect() {
 }
 
 // ----------------------------------------------------
-// 輔助函式：渲染預覽圖 (已更新影片預覽邏輯)
+// 輔助函式：渲染預覽圖 (使用 Canvas 截取影片靜態縮圖，並優化圖片處理)
 // ----------------------------------------------------
 function renderPreview(file) {
-    const reader = new FileReader();
+    // 預覽項目容器
     const previewItem = document.createElement('div');
     previewItem.className = 'preview-item';
     previewItem.dataset.name = file.name;
@@ -78,33 +78,97 @@ function renderPreview(file) {
             uploadButton.disabled = true;
         }
     };
+    // 將移除按鈕加到容器
+    previewItem.appendChild(removeBtn);
+    // 將容器加到網格
+    previewGrid.appendChild(previewItem);
 
-    reader.onload = (e) => {
-        let content;
+    const fileURL = URL.createObjectURL(file);
+
+    if (file.type.startsWith('image/')) {
+        // ⭐ 優化點：圖片：改用 createElement/appendChild
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const img = document.createElement('img');
+            img.src = e.target.result;
+            img.alt = file.name;
+            img.className = 'img-thumbnail'; // 新增 class
+            previewItem.appendChild(img);
+        };
+        reader.readAsDataURL(file);
         
-        if (file.type.startsWith('image/')) {
-            // 圖片：正常顯示
-            content = `<img src="${e.target.result}" alt="${file.name}">`;
-        } else if (file.type.startsWith('video/')) {
-            // ⭐ 影片：使用 <video> 標籤並設定 preload="metadata" 讓瀏覽器只載入最小預覽
+    } else if (file.type.startsWith('video/') || file.name.toLowerCase().endsWith('.mov')) {
+        // 影片：使用 <video> + <canvas> 截取靜態縮圖
+        const video = document.createElement('video');
+        video.src = fileURL;
+        video.preload = 'metadata'; // 只載入元數據，輕量化
+        video.muted = true;
+        video.style.display = 'none'; // 隱藏影片元素
+        // 必須將 video 元素加到 DOM 中才能觸發載入
+        previewItem.appendChild(video); 
+
+        const placeholder = document.createElement('div');
+        placeholder.className = 'loading-placeholder';
+        placeholder.innerHTML = '⚙️ 正在生成影片縮圖...';
+        previewItem.appendChild(placeholder);
+
+
+        video.onloadedmetadata = function() {
+            video.currentTime = 0.1; // 嘗試跳到第一幀
+        };
+        
+        video.onseeked = function() {
+            // 影片跳轉到 0.1s 後，開始截圖
+            const canvas = document.createElement('canvas');
+            const w = video.videoWidth;
+            const h = video.videoHeight;
+            canvas.width = w;
+            canvas.height = h;
+
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(video, 0, 0, w, h);
+
+            // 將 canvas 內容轉為靜態圖片 URL
+            const dataURL = canvas.toDataURL('image/jpeg');
+
+            // 替換佔位符為靜態縮圖
+            previewItem.removeChild(placeholder);
+            
+            const img = document.createElement('img');
+            img.src = dataURL;
+            img.alt = "影片縮圖";
+            img.className = "video-thumbnail";
+            previewItem.appendChild(img);
+
+            // 顯示影片資訊
             const videoSizeMB = (file.size / 1024 / 1024).toFixed(1);
-            content = `
-                <video controls muted preload="metadata" src="${e.target.result}" class="video-preview">
-                    您的瀏覽器不支援影片播放。
-                </video>
-                <div class="video-info">🎬 ${videoSizeMB}MB</div>
-            `;
-        } else {
-            // 其他：顯示問號佔位符
-            content = `<div class="file-placeholder">❓ ${file.name}</div>`;
-        }
+            const videoInfo = document.createElement('div');
+            videoInfo.className = 'video-info';
+            videoInfo.innerHTML = `🎥 ${videoSizeMB}MB`;
+            previewItem.appendChild(videoInfo);
+            
+            // 釋放資源
+            URL.revokeObjectURL(fileURL);
+            video.remove();
+        };
 
-        previewItem.innerHTML = content;
-        previewItem.appendChild(removeBtn);
-        previewGrid.appendChild(previewItem);
-    };
-
-    reader.readAsDataURL(file);
+        // 如果影片載入失敗，顯示錯誤佔位符
+        video.onerror = function() {
+            placeholder.innerHTML = '❌ 影片載入失敗 (無法生成縮圖)';
+            URL.revokeObjectURL(fileURL);
+            video.remove();
+        };
+        
+    } else {
+        // 其他不支援的格式或 HEIC 
+        const sizeMB = (file.size / 1024 / 1024).toFixed(1);
+        const filePlaceholder = document.createElement('div');
+        filePlaceholder.className = 'file-placeholder';
+        filePlaceholder.innerHTML = `❓ 檔案 (${sizeMB}MB)`;
+        previewItem.appendChild(filePlaceholder);
+        // 釋放資源
+        URL.revokeObjectURL(fileURL);
+    }
 }
 
 
