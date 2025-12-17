@@ -328,6 +328,7 @@ h1 {
     flex-direction: column;
     flex-grow: 1;
     min-height: 0; /* 關鍵：允許子元素收縮以觸發滾動 */
+    overflow: hidden; /* 關鍵 2：確保超出部分由子層處理滾動 */
 }
 
 .photo-grid {
@@ -338,6 +339,7 @@ h1 {
     
     /* ⭐ 核心修正：啟用滾動軸 ⭐ */
     flex-grow: 1;           /* 讓網格佔滿 photoView 的剩餘空間 */
+    flex-shrink: 0;      /* 禁止網格本身被壓縮 */
     overflow-y: auto;       /* 當相片超出範圍時顯示垂直滾動軸 */
     min-height: 0;          /* 強制讓 Flex 容器知道這裡可以收縮 */
     
@@ -353,11 +355,23 @@ h1 {
 }
 
 .photo-card {
+    /* 確保卡片不會被擠壓 */
+    flex-shrink: 0; 
+    height: auto; 
+    min-height: 200px; /* 設定一個最小高度，確保不會被壓扁 */
     background: #fff;
     border-radius: 8px;
     display: flex;
     flex-direction: column;
     position: relative;
+}
+
+.media-wrapper {
+    /* 確保影片與照片網格本身有固定比例，不隨視窗縮放 */
+    aspect-ratio: 16 / 9; 
+    width: 100%;
+    overflow: hidden;
+    flex-shrink: 0; /* 禁止縮放比例 */
 }
 
 .photo-card img, .photo-card video {
