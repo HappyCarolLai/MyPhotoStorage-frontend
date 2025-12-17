@@ -468,6 +468,23 @@ h1 {
     flex-shrink: 0;
 }
 
+/* 彈出視窗內部的標籤與輸入框 */
+.modal-content h3 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    color: #495057;
+}
+
+.modal-content label {
+    display: block;
+    margin-bottom: 5px;
+    text-align: center; /* 強制標籤文字居中 */
+}
+
+.modal-content input[type="text"] {
+    text-align: center; /* 輸入文字時也從中間開始，增加平衡感 */
+}
+
 /* --- 相片網格 UI/UX 優化 (原本樣式) --- */
 
 .photo-card {
