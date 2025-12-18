@@ -67,13 +67,15 @@ async function loadAlbumContent() {
         selectedPhotoIds.clear();
         document.getElementById('bulkActions').style.display = 'none';
 
-        // ⭐ 關鍵修正 1: 檢查相簿是否為空
         if (photos.length === 0) {
-            // 如果相簿為空，直接重新建立並寫入「沒有照片」的訊息。
-            // 這裡不再需要 noPhotosMessage 變數
-            grid.innerHTML = '<p id="noPhotosMessage" style="margin-top: 30px; text-align: center; color: #888;">此相簿目前沒有留影</p>';
-            return; 
+            grid.innerHTML = '';
+            const msg = document.createElement('p');
+            msg.id = 'noPhotosMessage';
+            msg.textContent = '此相簿目前沒有留影';
+            grid.appendChild(msg);
+            return;
         }
+
 
         // 步驟 3: 渲染照片/影片網格
 // 步驟 3: 渲染照片/影片網格
