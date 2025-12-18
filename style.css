@@ -334,7 +334,7 @@ h1 {
 .photo-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-    gap: 15px;
+    gap: 20px;
     padding: 15px 0;
     align-items: start;
     /* ⭐ 核心修正：啟用滾動軸 ⭐ */
@@ -359,8 +359,13 @@ h1 {
     flex-direction: column;
     position: relative;
 
-    aspect-ratio: 1 / 1;   /* 正方形，可改 4/5、3/4 */
+    aspect-ratio: 3 / 4;   /* 拍立得比例（關鍵） */
     width: 100%;
+
+    background: #fff;
+    padding: 10px 10px 28px;  /* 下方留白較厚 */
+    box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+    border-radius: 4px;
 }
 
 .photo-card img,
@@ -368,6 +373,7 @@ h1 {
     width: 100%;
     height: 100%;
     object-fit: cover;
+    display: block;
 }
 
 
