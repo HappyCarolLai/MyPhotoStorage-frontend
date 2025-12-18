@@ -662,12 +662,17 @@ h1 {
 /* ---------------------- */
 /* 相簿空訊息置中 */
 /* ---------------------- */
+.empty-grid {
+    display: flex !important;
+    justify-content: center;
+    align-items: center;
+    min-height: 300px; /* 依照你的設計調整高度 */
+}
+
 #noPhotosMessage {
-    display: block;      /* 確保是區塊元素 */
-    width: 100%;         /* 滿寬 */
-    text-align: center;  /* 水平置中 */
-    margin-top: 30px;    /* 與上方間距 */
     color: #888;
+    white-space: nowrap;
+    margin: 0;
 }
 
 .message-box.success { background-color: #E6F7E6; color: #28A745; }

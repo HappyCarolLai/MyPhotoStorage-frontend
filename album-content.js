@@ -67,20 +67,21 @@ async function loadAlbumContent() {
         selectedPhotoIds.clear();
         document.getElementById('bulkActions').style.display = 'none';
 
-        if (photos.length === 0) {
+       if (photos.length === 0) {
             grid.innerHTML = '';
+            grid.classList.add('empty-grid'); // 加入置中專用的樣式
+    
             const msg = document.createElement('p');
             msg.id = 'noPhotosMessage';
             msg.textContent = '此相簿目前沒有留影';
-            msg.style.marginTop = '30px';
-            msg.style.color = '#888';
-            msg.style.alignSelf = 'center'; // 如果 #photoGrid 是 flex 佈局
+    
             grid.appendChild(msg);  
             return;
+        } else {
+            grid.classList.remove('empty-grid'); // 有照片時移除置中樣式
         }
 
         // 步驟 3: 渲染照片/影片網格
-// 步驟 3: 渲染照片/影片網格
         photos.forEach((photo, index) => {
             const card = document.createElement('div');
             card.className = 'photo-card';
