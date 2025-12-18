@@ -363,7 +363,7 @@ h1 {
     width: 100%;
 
     background: #fff;
-    padding: 10px 10px 20px;  /* 下方留白較厚 */
+    padding: 10px 10px 12px;  /* 下方留白較厚 */
     box-shadow: 0 8px 20px rgba(0,0,0,0.15);
     border-radius: 4px;
 
