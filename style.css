@@ -366,7 +366,12 @@ h1 {
     padding: 10px 10px 20px;  /* 下方留白較厚 */
     box-shadow: 0 8px 20px rgba(0,0,0,0.15);
     border-radius: 4px;
+
+    transform: rotate(var(--r, 0deg));
 }
+.photo-card:nth-child(3n)   { --r: -2deg; }
+.photo-card:nth-child(3n+1) { --r:  1.5deg; }
+.photo-card:nth-child(3n+2) { --r: -1deg; }
 
 .photo-card img,
 .photo-card video {
