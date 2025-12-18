@@ -359,16 +359,16 @@ h1 {
     flex-direction: column;
     position: relative;
 
-    aspect-ratio: 3 / 4;   /* 拍立得比例（關鍵） */
     width: 100%;
-
+    aspect-ratio: 3 / 4;  /* 卡片整體比例 */
     background: #fff;
-    padding: 10px 10px 12px;  /* 下方留白較厚 */
+    padding: 10px 10px 20px;  /* 下方留白 */
     box-shadow: 0 8px 20px rgba(0,0,0,0.15);
     border-radius: 4px;
 
     transform: rotate(var(--r, 0deg));
 }
+
 .photo-card:nth-child(3n)   { --r: -2deg; }
 .photo-card:nth-child(3n+1) { --r:  1.5deg; }
 .photo-card:nth-child(3n+2) { --r: -1deg; }
@@ -574,28 +574,27 @@ h1 {
 
 /* --- 相片網格 UI/UX 優化 (原本樣式) --- */
 .media-wrapper {
-    position: relative;
+    aspect-ratio: 1 / 1;  /* 圖片區正方形 */
     overflow: hidden;
-    width: 100%;
-    aspect-ratio: 16 / 9;  /* 保持比例 */
-    flex-shrink: 0;         /* 禁止壓縮 */
 }
-.media-wrapper img, 
+
+.media-wrapper img,
 .media-wrapper video {
     width: 100%;
     height: 100%;
     object-fit: cover;
+    display: block;
 }
 
 .photo-info {
-    padding: 6px 10px;
-    background-color: #F8F9FA;
-    border-top: 1px solid #E9ECEF;
-    text-align: left;
-    white-space: normal;   /* 允許換行 */
+    text-align: center;
+    margin-top: 6px; /* 文字稍微離圖片 */
+    font-size: 12px;
+    line-height: 1.2;
     overflow: hidden;
-    text-overflow: ellipsis;
-    font-size: 0.85rem;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;  /* 最多兩行文字 */
+    -webkit-box-orient: vertical;
 }
 
 .photo-filename {
