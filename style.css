@@ -355,28 +355,21 @@ h1 {
 
 .photo-card {
     flex-shrink: 0;
-    height: auto;           /* 讓高度隨內容增加 */
-    min-height: unset;      /* 取消原本的 200px 限制 */
-    background: #fff;
-    border-radius: 8px;
     display: flex;
     flex-direction: column;
     position: relative;
-    overflow: hidden;       /* 確保圓角效果並防止內容溢出 */
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    align-self: flex-start; /* 關鍵：防止在網格中被強行拉長 */
+
+    aspect-ratio: 1 / 1;   /* 正方形，可改 4/5、3/4 */
+    width: 100%;
 }
 
 .photo-card img,
 .photo-card video {
     width: 100%;
-    height: auto;           /* 取消 100% */
-    aspect-ratio: 16 / 9;   /* 強制設定照片比例，確保整齊 */
+    height: 100%;
     object-fit: cover;
-    cursor: pointer;
-    background: #000;
-    display: block;         /* 移除底部微小縫隙 */
 }
+
 
 .video-indicator {
     position: absolute;
