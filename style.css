@@ -218,14 +218,16 @@ h1 {
     font-size: 1em;
 }
 
+/* 上傳頁面：固定拖曳區高度，內部預覽滾動 */
 #dropArea {
-    border: 3px dashed #A08878;
-    border-radius: 10px;
-    min-height: 250px;
+    height: 300px;           /* 固定高度，可依需求調整 */
+    overflow-y: auto;        /* 內容超過時垂直滾動 */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start; /* 預覽從上方開始堆疊 */
     padding: 20px;
-    background-color: #FFFFFF;
-    transition: background-color 0.3s;
-    position: relative;
+    box-sizing: border-box;  /* 保證 padding 不撐高 */
 }
 
 #dropArea.drag-over {
@@ -237,7 +239,7 @@ h1 {
     grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
     gap: 10px;
     width: 100%;
-    margin-top: 20px;
+    margin-top: 10px;
 }
 
 .preview-item {
