@@ -119,6 +119,12 @@ async function loadAlbumContent() {
             grid.appendChild(card);
         });
         
+        // 照片渲染完成後，給每張卡片隨機旋轉
+        document.querySelectorAll('.photo-card').forEach(card => {
+            const angle = Math.random() * 10 - 5; // -5 到 5 度
+            card.style.setProperty('--r', `${angle}deg`);
+        });
+
     } catch (e) {
         // 步驟 4: 處理錯誤
         console.error("載入相簿內容時發生錯誤：", e);
