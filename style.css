@@ -159,8 +159,8 @@ h1 {
     min-height: 100px;
 }
 
-.album-card:hover {
-    transform: translateY(-3px);
+.photo-card:hover {
+    transform: rotate(var(--r, 0deg)) translateY(-3px);
     box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
     background-color: #FFFFFF;
 }
@@ -381,17 +381,17 @@ h1 {
 }
 
 .photo-info {
-    position: absolute;                
-    bottom: 50px;                      /* 距離卡片底部 50px，靠近圖片 */
-    right: 10px;                       /* 靠右對齊 */
-    max-width: calc(100% - 20px);      /* 避免文字貼邊 */
-    text-align: right;                 
-    font-size: 12px;                   
-    line-height: 1.2;                  
-    overflow: hidden;                  
-    display: -webkit-box;              
-    -webkit-line-clamp: 2;             /* 最多兩行文字 */
-    -webkit-box-orient: vertical;      
+    position: relative;          /* 改成相對定位，隨內容排列 */
+    bottom: auto;                /* 不再使用 bottom */
+    right: auto;                 /* 不再靠右 */
+    padding-top: 6px;            /* 可以增加文字與圖片的距離 */
+    text-align: left;            /* 靠左對齊 */
+    font-size: 12px;
+    line-height: 1.2;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;       /* 最多兩行 */
+    -webkit-box-orient: vertical;
 }
 
 .photo-actions {
