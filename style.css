@@ -585,18 +585,19 @@ h1 {
 
 /* ------------------ 底部文字固定 ------------------ */
 .photo-info {
-    position: absolute;              /* 固定在卡片底部 */
-    bottom: 40px;                    /* 預留給按鈕高度 */
-    left: 0;
-    width: 100%;
-    text-align: center;
+    position: absolute;
+    bottom: 40px;        /* 距離卡片底部，控制文字高度 */
+    right: 10px;         /* 靠右顯示 */
+    max-width: calc(100% - 20px);  /* 避免文字貼邊 */
+    text-align: right;   /* 文字靠右對齊 */
     font-size: 12px;
     line-height: 1.2;
     overflow: hidden;
     display: -webkit-box;
-    -webkit-line-clamp: 2;           /* 最多兩行文字 */
+    -webkit-line-clamp: 2;         /* 最多兩行 */
     -webkit-box-orient: vertical;
 }
+
 
 .photo-filename {
     display: block;
