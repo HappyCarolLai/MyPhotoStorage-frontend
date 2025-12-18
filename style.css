@@ -355,21 +355,21 @@ h1 {
 
 /* ------------------ 拍立得卡片 ------------------ */
 .photo-card {
-    position: relative;              /* 讓絕對定位按鈕和文字有效 */
+    flex-shrink: 0;                   /* 禁止縮小 */
     display: flex;
     flex-direction: column;
-    aspect-ratio: 3 / 4;             /* 拍立得比例 */
+    position: relative;
+
+    aspect-ratio: 3 / 4;              /* 拍立得比例 */
     width: 100%;
+
     background: #fff;
-    padding: 10px 10px 40px;                   /* 上方與左右留白 */
+    padding: 10px 10px 40px;          /* 上 10px，左右 10px，底部 40px 空間給文字與按鈕 */
     box-shadow: 0 8px 20px rgba(0,0,0,0.15);
     border-radius: 4px;
-    transform: rotate(var(--r, 0deg));
-}
 
-.photo-card:nth-child(3n)   { --r: -2deg; }
-.photo-card:nth-child(3n+1) { --r:  1.5deg; }
-.photo-card:nth-child(3n+2) { --r: -1deg; }
+    transform: rotate(var(--r, 0deg)); /* 隨機旋轉角度 */
+}
 
 .photo-card img,
 .photo-card video {
@@ -377,8 +377,30 @@ h1 {
     height: 100%;
     object-fit: cover;
     display: block;
+    border-radius: 4px;               /* 圖片圓角對應卡片 */
 }
 
+.photo-info {
+    position: absolute;                
+    bottom: 50px;                      /* 距離卡片底部 50px，靠近圖片 */
+    right: 10px;                       /* 靠右對齊 */
+    max-width: calc(100% - 20px);      /* 避免文字貼邊 */
+    text-align: right;                 
+    font-size: 12px;                   
+    line-height: 1.2;                  
+    overflow: hidden;                  
+    display: -webkit-box;              
+    -webkit-line-clamp: 2;             /* 最多兩行文字 */
+    -webkit-box-orient: vertical;      
+}
+
+.photo-actions {
+    position: absolute;                
+    bottom: 10px;                       /* 距離卡片底部 10px，固定靠下 */
+    right: 10px;                        /* 靠右對齊 */
+    display: flex;                      
+    gap: 6px;                            /* 按鈕之間間距 */
+}
 
 .video-indicator {
     position: absolute;
@@ -584,21 +606,6 @@ h1 {
 }
 
 /* ------------------ 底部文字固定 ------------------ */
-.photo-info {
-    position: absolute;
-    bottom: 40px;        /* 距離卡片底部，控制文字高度 */
-    right: 10px;         /* 靠右顯示 */
-    max-width: calc(100% - 20px);  /* 避免文字貼邊 */
-    text-align: right;   /* 文字靠右對齊 */
-    font-size: 12px;
-    line-height: 1.2;
-    overflow: hidden;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;         /* 最多兩行 */
-    -webkit-box-orient: vertical;
-}
-
-
 .photo-filename {
     display: block;
     font-weight: 500;
@@ -606,17 +613,7 @@ h1 {
 }
 
 /* ------------------ 底部按鈕固定 ------------------ */
-.photo-actions {
-    position: absolute;              /* 固定在卡片底部白邊 */
-    bottom: 6px;                     /* 距離底部 */
-    right: 10px;
-    width: 100%;
-    display: flex;
-    justify-content: flex-end;        /* 按鈕置中 */
-    gap: 6px;
-    pointer-events: auto;            /* 確保按鈕可點擊 */
-    width: auto; 
-}
+
 .icon-btn {
     background: rgba(255,255,255,0.8);  /* 半透明背景 */
     border-radius: 4px;
