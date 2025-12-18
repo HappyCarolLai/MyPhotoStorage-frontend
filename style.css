@@ -586,7 +586,7 @@ h1 {
 /* ------------------ 底部文字固定 ------------------ */
 .photo-info {
     position: absolute;              /* 固定在卡片底部 */
-    bottom: 28px;                    /* 預留給按鈕高度 */
+    bottom: 40px;                    /* 預留給按鈕高度 */
     left: 0;
     width: 100%;
     text-align: center;
@@ -608,12 +608,13 @@ h1 {
 .photo-actions {
     position: absolute;              /* 固定在卡片底部白邊 */
     bottom: 6px;                     /* 距離底部 */
-    left: 0;
+    right: 10px;
     width: 100%;
     display: flex;
-    justify-content: center;         /* 按鈕置中 */
+    justify-content: flex-end;        /* 按鈕置中 */
     gap: 6px;
     pointer-events: auto;            /* 確保按鈕可點擊 */
+    width: auto; 
 }
 .icon-btn {
     background: rgba(255,255,255,0.8);  /* 半透明背景 */
