@@ -353,19 +353,17 @@ h1 {
     height: 100%; /* 確保繼承父層高度 */
 }
 
+/* ------------------ 拍立得卡片 ------------------ */
 .photo-card {
-    flex-shrink: 0;
+    position: relative;              /* 讓絕對定位按鈕和文字有效 */
     display: flex;
     flex-direction: column;
-    position: relative;
-
+    aspect-ratio: 3 / 4;             /* 拍立得比例 */
     width: 100%;
-    aspect-ratio: 3 / 4;  /* 卡片整體比例 */
     background: #fff;
-    padding: 10px 10px 20px;  /* 下方留白 */
+    padding: 10px;                   /* 上方與左右留白 */
     box-shadow: 0 8px 20px rgba(0,0,0,0.15);
     border-radius: 4px;
-
     transform: rotate(var(--r, 0deg));
 }
 
@@ -572,12 +570,11 @@ h1 {
     .next { right: 10px; }
 }
 
-/* --- 相片網格 UI/UX 優化 (原本樣式) --- */
+/* ------------------ 圖片 / 影片區 ------------------ */
 .media-wrapper {
-    aspect-ratio: 1 / 1;  /* 圖片區正方形 */
+    aspect-ratio: 1 / 1;             /* 圖片區正方形 */
     overflow: hidden;
 }
-
 .media-wrapper img,
 .media-wrapper video {
     width: 100%;
@@ -586,14 +583,18 @@ h1 {
     display: block;
 }
 
+/* ------------------ 底部文字固定 ------------------ */
 .photo-info {
+    position: absolute;              /* 固定在卡片底部 */
+    bottom: 28px;                    /* 預留給按鈕高度 */
+    left: 0;
+    width: 100%;
     text-align: center;
-    margin-top: 6px; /* 文字稍微離圖片 */
     font-size: 12px;
     line-height: 1.2;
     overflow: hidden;
     display: -webkit-box;
-    -webkit-line-clamp: 2;  /* 最多兩行文字 */
+    -webkit-line-clamp: 2;           /* 最多兩行文字 */
     -webkit-box-orient: vertical;
 }
 
@@ -603,12 +604,22 @@ h1 {
     color: #495057;
 }
 
+/* ------------------ 底部按鈕固定 ------------------ */
 .photo-actions {
+    position: absolute;              /* 固定在卡片底部白邊 */
+    bottom: 6px;                     /* 距離底部 */
+    left: 0;
+    width: 100%;
     display: flex;
-    justify-content: flex-end;
-    gap: 5px;
-    padding: 4px 8px;
-    background-color: #FFFFFF;
+    justify-content: center;         /* 按鈕置中 */
+    gap: 6px;
+    pointer-events: auto;            /* 確保按鈕可點擊 */
+}
+.icon-btn {
+    background: rgba(255,255,255,0.8);  /* 半透明背景 */
+    border-radius: 4px;
+    padding: 4px;
+    font-size: 14px;
 }
 
 .photo-select-checkbox {
