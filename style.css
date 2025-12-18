@@ -361,7 +361,7 @@ h1 {
     aspect-ratio: 3 / 4;             /* 拍立得比例 */
     width: 100%;
     background: #fff;
-    padding: 10px;                   /* 上方與左右留白 */
+    padding: 10px 10px 40px;                   /* 上方與左右留白 */
     box-shadow: 0 8px 20px rgba(0,0,0,0.15);
     border-radius: 4px;
     transform: rotate(var(--r, 0deg));
