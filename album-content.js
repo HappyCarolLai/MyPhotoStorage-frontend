@@ -72,7 +72,10 @@ async function loadAlbumContent() {
             const msg = document.createElement('p');
             msg.id = 'noPhotosMessage';
             msg.textContent = '此相簿目前沒有留影';
-            grid.appendChild(msg);
+            msg.style.marginTop = '30px';
+            msg.style.color = '#888';
+            msg.style.alignSelf = 'center'; // 如果 #photoGrid 是 flex 佈局
+            grid.appendChild(msg);  
             return;
         }
 
