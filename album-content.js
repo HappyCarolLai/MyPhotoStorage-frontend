@@ -76,7 +76,6 @@ async function loadAlbumContent() {
             return;
         }
 
-
         // 步驟 3: 渲染照片/影片網格
 // 步驟 3: 渲染照片/影片網格
         photos.forEach((photo, index) => {
