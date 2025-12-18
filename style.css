@@ -663,9 +663,10 @@ h1 {
 /* 相簿空訊息置中 */
 /* ---------------------- */
 #noPhotosMessage {
-    width: 100%;
-    text-align: center;
-    margin-top: 30px;
+    display: block;      /* 確保是區塊元素 */
+    width: 100%;         /* 滿寬 */
+    text-align: center;  /* 水平置中 */
+    margin-top: 30px;    /* 與上方間距 */
     color: #888;
 }
 
