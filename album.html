@@ -50,7 +50,9 @@
         <span class="close" onclick="document.getElementById('movePhotoModal').style.display='none'">&times;</span>
         <h3>移動留影</h3>
         <p id="movePhotoMessage">將 <span id="photoToMoveName" style="font-weight: bold;"></span> 移動到：</p>
-        <select id="targetMoveAlbumSelect" style="width: 100%; margin: 10px 0; padding: 10px; border-radius: 6px; border: 1px solid #D1D8DF;"></select>
+        
+        <select id="targetMoveAlbumSelect" style="width: 100%; margin: 15px 0; padding: 12px; border-radius: 8px; border: 1px solid #D1D8DF; font-size: 1.1rem; color: #333;">
+        </select>
         
         <div class="modal-actions" style="margin-top: 20px; text-align: right; width: 100%;">
             <button class="icon-btn" onclick="document.getElementById('movePhotoModal').style.display='none'" style="font-size: 1rem; margin-right: 15px;">取消</button>
@@ -63,10 +65,11 @@
     <div class="modal-content">
         <span class="close" onclick="document.getElementById('renamePhotoModal').style.display='none'">&times;</span>
         <h3>重新命名照片</h3>
-        <p>目前檔名: <span id="currentPhotoNameDisplay" style="font-weight: bold;"></span></p>
+        
         <input type="hidden" id="renamePhotoId">
-        <label for="newPhotoNameInput">新檔名 (不含副檔名):</label>
-        <input type="text" id="newPhotoNameInput" style="width: 100%; margin: 10px 0; padding: 8px; border-radius: 6px; border: 1px solid #ccc;">
+        <label for="newPhotoNameInput" style="display: block; margin-bottom: 8px;">請輸入新檔名 (不含副檔名):</label>
+        
+        <input type="text" id="newPhotoNameInput" style="width: 100%; margin: 10px 0; padding: 12px 10px; border-radius: 8px; border: 1px solid #ccc; font-size: 1rem; box-sizing: border-box;">
         
         <div class="modal-actions" style="margin-top: 20px; text-align: right;">
             <button class="icon-btn" onclick="document.getElementById('renamePhotoModal').style.display='none'" style="font-size: 1rem; margin-right: 10px;">取消</button>
