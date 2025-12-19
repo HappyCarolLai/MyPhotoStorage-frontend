@@ -675,6 +675,43 @@ h1 {
     margin: 0;
 }
 
+/* 統一設定重新命名與移動視窗的樣式 */
+#renamePhotoModal, #movePhotoModal {
+    display: none;             /* 初始隱藏，由 JS 控制顯示 */
+    position: fixed;           /* 固定在螢幕上，不隨捲軸滾動 */
+    z-index: 1000;             /* 確保在最上層 */
+    
+    /* 置中關鍵屬性 */
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%); /* 完美的絕對置中 */
+    
+    /* 視窗外觀美化 */
+    background-color: #fff;
+    padding: 24px;
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    width: 320px;              /* 固定寬度，你可以視需求調整 */
+    max-width: 90vw;           /* 手機版不超出螢幕 */
+    border: 1px solid #eee;
+}
+
+/* 內部的標題與輸入框美化 (選擇性加入) */
+#renamePhotoModal h3, #movePhotoModal h3 {
+    margin-top: 0;
+    font-size: 1.2rem;
+    color: #333;
+}
+
+#newPhotoNameInput, #targetMoveAlbumSelect {
+    width: 100%;
+    padding: 8px;
+    margin: 15px 0;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    box-sizing: border-box; /* 確保 padding 不會撐破寬度 */
+}
+
 .message-box.success { background-color: #E6F7E6; color: #28A745; }
 .message-box.error { background-color: #FEEEEE; color: #DC3545; }
 .message-box.loading { background-color: #EAEFF4; color: #007BFF; }
