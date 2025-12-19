@@ -66,10 +66,12 @@
         <span class="close" onclick="document.getElementById('renamePhotoModal').style.display='none'">&times;</span>
         <h3>重新命名照片</h3>
         
+        <span id="currentPhotoNameDisplay" style="display: none;"></span>
+        
         <input type="hidden" id="renamePhotoId">
         <label for="newPhotoNameInput" style="display: block; margin-bottom: 8px;">請輸入新檔名 (不含副檔名):</label>
         
-        <input type="text" id="newPhotoNameInput" style="width: 100%; margin: 10px 0; padding: 12px 10px; border-radius: 8px; border: 1px solid #ccc; font-size: 1rem; box-sizing: border-box;">
+        <input type="text" id="newPhotoNameInput" style="width: 100%; margin: 10px 0; padding: 12px 10px; border-radius: 8px; border: 1px solid #ccc; font-size: 1.1rem; box-sizing: border-box;">
         
         <div class="modal-actions" style="margin-top: 20px; text-align: right;">
             <button class="icon-btn" onclick="document.getElementById('renamePhotoModal').style.display='none'" style="font-size: 1rem; margin-right: 10px;">取消</button>
