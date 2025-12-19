@@ -677,26 +677,25 @@ h1 {
 
 /* --- style.css 修正段落 --- */
 
-/* 1. 刪除原本針對 #renamePhotoModal, #movePhotoModal 的單獨寬度與 top/left 設定 */
-/* 2. 確保這些 Modal 在顯示時使用 flex 佈局來達到完美置中 */
+/* 1. 讓重新命名與移動視窗在打開時，繼承 .modal 的全螢幕黑背景與置中邏輯 */
 #renamePhotoModal[style*="block"], 
 #movePhotoModal[style*="block"] {
-    display: flex !important; /* 強制使用 flex 置中，這會繼承 .modal 的全螢幕黑背景 */
+    display: flex !important; 
 }
 
-/* 3. 修正相簿空訊息：水平垂直置中且文字不換行 */
+/* 2. 修正相簿空訊息：確保文字水平垂直置中且不換行 */
 .empty-grid {
     display: flex !important;
     justify-content: center;
     align-items: center;
-    width: 100%;             /* 佔滿寬度 */
-    min-height: 400px;       /* 確保足夠高度來垂直置中 */
+    width: 100%;             
+    min-height: 400px;       
     flex: 1;
 }
 
 #noPhotosMessage {
     color: #888;
-    white-space: nowrap;     /* 文字不換行 */
+    white-space: nowrap;     
     margin: 0;
     text-align: center;
 }
